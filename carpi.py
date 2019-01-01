@@ -7,6 +7,20 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
 
+# todo
+# labels for wifi
+# - is connected
+# - - to essid
+# - - signal strength
+#
+# labels for gps
+# - has fix
+# - - lng / lat
+# - - speed
+#
+# rpi radio sender
+# https://howtoraspberrypi.com/create-radio-transmitter-raspberry-pi/
+
 class GPS(Thread):
     daemon = True
     do_run = False
