@@ -2,7 +2,7 @@ import gi
 from time import sleep
 from threading import Thread
 from gps import gps, WATCH_ENABLE
-
+from loguru import logger as log
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
