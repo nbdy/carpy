@@ -1,5 +1,4 @@
 import gi
-from loguru import logger as log
 from time import sleep
 from threading import Thread
 from gps import gps, WATCH_ENABLE
