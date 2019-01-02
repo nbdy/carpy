@@ -6,7 +6,7 @@ from loguru import logger as log
 class Setup(object):
     SCRIPT = "carpi.py"
     HEADLESS_AUTOSTART_PATH = "/etc/rc.local"
-    AUTOSTART_PATH = "~/.config/lxsession/LXDE-pi/autostart"
+    AUTOSTART_PATH = "/home/pi/.config/lxsession/LXDE-pi/autostart"
 
     @staticmethod
     def read_autostart_file():

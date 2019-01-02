@@ -1,10 +1,14 @@
-import gi
 from time import sleep
 from threading import Thread
 from gps import gps, WATCH_ENABLE
 from loguru import logger as log
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk
+import netifaces
+
+from pyglet.window import Window
+from pyglet.text import Label
+from pyglet import app as pyglapp
+
+from subprocess import check_output
 
 
 # todo
@@ -20,6 +24,46 @@ from gi.repository import Gtk
 #
 # rpi radio sender
 # https://howtoraspberrypi.com/create-radio-transmitter-raspberry-pi/
+
+
+class Network(object):
+    @staticmethod
+    def get_network_interface(prefix):
+        for iface in netifaces.interfaces():
+            if iface.startswith(prefix):
+                return iface
+        return None
+
+    @staticmethod
+    def get_connected_essid():
+        o = str(check_output(["iwgetid"]))
+        if "ESSID" not in o:
+            return ""
+        return o.split(':"')[1].split('"')[0]
+
+    @staticmethod
+    def get_status(prefix, family=netifaces.AF_INET):
+        iface = Network.get_network_interface(prefix)
+        if iface is None:
+            return None
+        try:
+            return netifaces.ifaddresses(iface)[family]
+        except KeyError:
+            return None
+
+    @staticmethod
+    def get_wifi_connected_string():
+        if Network.get_status("wl") is None:
+            return "not connected"
+        return "connected"
+
+    @staticmethod
+    def get_wifi_connected_ip():
+        s = Network.get_status("wl")
+        if s is None:
+            return ""
+        return s[0]["addr"]
+
 
 class GPS(Thread):
     daemon = True
@@ -50,42 +94,45 @@ class GPS(Thread):
             sleep(self.sleep_time)
 
 
-class UI(Gtk.Window):
+class UI(Window):
     box = None
 
+    lbl_wifi = None
+    lbl_wifi_value_status = None
+    lbl_wifi_value_essid = None
+    lbl_wifi_value_ip = None
+
     def __init__(self):
+        super(UI, self).__init__()
         log.debug("initializing ui")
-        Gtk.Window.__init__(self)
-        self.fullscreen()
-        self.connect("destroy", Gtk.main_quit)
-        self.show_all()
-        Gtk.main()
-        self.refresh(self._build_info_screen)
+        # self.set_fullscreen(True)
+        self.set_size(480, 320)
+        self.update_wifi_info()
+        self.lbl_bluetooth = Label("bluetooth:")
+        self.lbl_bluetooth.x = 4
+        self.lbl_bluetooth.y = 292
 
-    def refresh(self, f):
-        log.debug("refreshing ui")
-        self.remove(self.box)
-        f()
-        self.add(self.box)
-        self.show_all()
+    def update_wifi_info(self):
+        self.lbl_wifi = Label("wifi:")
+        self.lbl_wifi.x = 4
+        self.lbl_wifi.y = 306
+        self.lbl_wifi_value_status = Label(Network.get_wifi_connected_string())
+        self.lbl_wifi_value_status.x = 42
+        self.lbl_wifi_value_status.y = 306
+        self.lbl_wifi_value_essid = Label(Network.get_connected_essid())
+        self.lbl_wifi_value_essid.x = 142
+        self.lbl_wifi_value_essid.y = 306
+        self.lbl_wifi_value_ip = Label(Network.get_wifi_connected_ip())
+        self.lbl_wifi_value_ip.x = 336
+        self.lbl_wifi_value_ip.y = 306
 
-    def _build_info_screen(self):
-        log.debug("building info screen")
-        self.box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10, homogeneous=True)
-        l = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8, homogeneous=False)
-        r = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8, homogeneous=False)
-        self.box.pack_start(l, True, True, 0)
-        self.box.pack_start(r, True, True, 0)
-        l.pack_start(Gtk.Label("gps:"), True, True, 0)
-        r.pack_start(Gtk.Label("todo_status"), True, True, 0)
-
-    def lock(self):
-        def lock():
-            self.box = self.build_box()
-        self.refresh(lock)
-
-    def unlock(self):
-        self.refresh(self._assemble_main_menu)
+    def on_draw(self):
+        self.clear()
+        self.lbl_wifi.draw()
+        self.lbl_wifi_value_status.draw()
+        self.lbl_wifi_value_essid.draw()
+        self.lbl_wifi_value_ip.draw()
+        self.lbl_bluetooth.draw()
 
 
 class Main(object):
@@ -96,6 +143,7 @@ class Main(object):
         log.debug("initializing")
         self.gps = GPS(self._gps_callback)
         self.ui = UI()
+        pyglapp.run()
 
     def _gps_callback(self, data):
         pass  # todo update position
