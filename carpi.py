@@ -102,11 +102,14 @@ class UI(Window):
     lbl_wifi_value_essid = None
     lbl_wifi_value_ip = None
 
+    # 0: main
+    MENU = 0
+
     def __init__(self):
         super(UI, self).__init__()
         log.debug("initializing ui")
-        # self.set_fullscreen(True)
-        self.set_size(480, 320)
+        self.set_fullscreen(True)
+        # self.set_size(480, 320)
         self.update_wifi_info()
         self.lbl_bluetooth = Label("bluetooth:")
         self.lbl_bluetooth.x = 4
@@ -115,7 +118,7 @@ class UI(Window):
     def update_wifi_info(self):
         self.lbl_wifi = Label("wifi:")
         self.lbl_wifi.x = 4
-        self.lbl_wifi.y = 306
+        self.lbl_wifi.y = 100
         self.lbl_wifi_value_status = Label(Network.get_wifi_connected_string())
         self.lbl_wifi_value_status.x = 42
         self.lbl_wifi_value_status.y = 306
@@ -128,11 +131,12 @@ class UI(Window):
 
     def on_draw(self):
         self.clear()
-        self.lbl_wifi.draw()
-        self.lbl_wifi_value_status.draw()
-        self.lbl_wifi_value_essid.draw()
-        self.lbl_wifi_value_ip.draw()
-        self.lbl_bluetooth.draw()
+        if self.MENU == 0:
+            self.lbl_wifi.draw()
+            self.lbl_wifi_value_status.draw()
+            self.lbl_wifi_value_essid.draw()
+            self.lbl_wifi_value_ip.draw()
+            self.lbl_bluetooth.draw()
 
 
 class Main(object):
