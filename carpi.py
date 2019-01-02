@@ -103,7 +103,7 @@ class UI(Window):
     lbl_wifi_value_ip = None
 
     # 0: main
-    MENU = 0
+    menu = 0
 
     def __init__(self):
         super(UI, self).__init__()
@@ -118,7 +118,7 @@ class UI(Window):
     def update_wifi_info(self):
         self.lbl_wifi = Label("wifi:")
         self.lbl_wifi.x = 4
-        self.lbl_wifi.y = 100
+        self.lbl_wifi.y = 1000
         self.lbl_wifi_value_status = Label(Network.get_wifi_connected_string())
         self.lbl_wifi_value_status.x = 42
         self.lbl_wifi_value_status.y = 306
@@ -131,7 +131,7 @@ class UI(Window):
 
     def on_draw(self):
         self.clear()
-        if self.MENU == 0:
+        if self.menu == 0:
             self.lbl_wifi.draw()
             self.lbl_wifi_value_status.draw()
             self.lbl_wifi_value_essid.draw()
@@ -155,4 +155,8 @@ class Main(object):
 
 if __name__ == '__main__':
     log.debug("going to run")
-    Main()
+    try:
+        Main()
+    except:
+        from os import system, getcwd
+        system("sudo python3 " + getcwd() + "/" + __file__)
