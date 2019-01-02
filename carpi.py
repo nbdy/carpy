@@ -130,7 +130,7 @@ class UI(App):
     menu = 0
 
     def __init__(self):
-        super(UI, self).__init__(layout="grid")
+        super(UI, self).__init__(layout="grid", width=480, height=320)
         log.debug("initializing ui")
         self.bg = "black"
         self.tk.attributes("-fullscreen", True)
@@ -142,20 +142,20 @@ class UI(App):
 
     def wifi_info(self):
         log.debug("building wifi info screen")
-        Text(self, text="wifi:", color="white", grid=[4, 4])
-        Text(self, text=Network.get_wifi_connected_string(), color="white", grid=[8, 4])
-        Text(self, text=Network.get_connected_essid(), color="white", grid=[128, 4])
-        Text(self, text=Network.get_wifi_connected_ip(), color="white", grid=[200, 4])
+        Text(self, text="wifi:", color="white", grid=[8, 4])
+        Text(self, text=Network.get_wifi_connected_string(), color="white", grid=[18, 4])
+        Text(self, text=Network.get_connected_essid(), color="white", grid=[40, 4])
+        Text(self, text=Network.get_wifi_connected_ip(), color="white", grid=[80, 4])
 
     def bluetooth_info(self):
         log.debug("building bluetooth info screen")
-        Text(self, text="bluetooth:", color="white", grid=[8, 12])
-        Text(self, text=Bluetooth.get_bluetooth_status_string(), color="white", grid=[16, 12])
+        Text(self, text="bluetooth:", color="white", grid=[8, 8])
+        Text(self, text=Bluetooth.get_bluetooth_status_string(), color="white", grid=[18, 8])
 
     def gps_info(self):
         log.debug("building gps info screen")
-        Text(self, text="gps:", color="white", grid=[4, 20])
-        Text(self, text="todo", color="white", grid=[12, 20])
+        Text(self, text="gps:", color="white", grid=[8, 20])
+        Text(self, text="todo", color="white", grid=[18, 20])
 
 
 class Main(object):
