@@ -5,9 +5,8 @@ from loguru import logger as log
 
 class Setup(object):
     SCRIPT = "carpi.py"
-    ROTATE_SCRIPT = "rotate.sh"
     HEADLESS_AUTOSTART_PATH = "/etc/rc.local"
-    AUTOSTART_PATH = "~/.config/lxsession/LXDE/autostart"
+    AUTOSTART_PATH = "~/.config/lxsession/LXDE-pi/autostart"
 
     @staticmethod
     def read_autostart_file():
@@ -30,16 +29,7 @@ class Setup(object):
         return True
 
     @staticmethod
-    def _install_rotate_screen_script():
-        log.info("putting rotate script into autostart")
-        with open(Setup.AUTOSTART_PATH, 'a') as o:
-            o.write("@" + getcwd() + "/rotate.sh")
-        return True
-
-    @staticmethod
-    def install_autostart(rotate=False):
-        if rotate:
-            Setup._install_rotate_screen_script()
+    def install_autostart():
         if Setup.already_autostart_installed():
             log.info("autostart already installed")
             return True
@@ -55,23 +45,16 @@ class Setup(object):
                     o.write(l + "\n")
 
     @staticmethod
-    def uninstall_autostart(rotate=False):
-        if rotate:
-            Setup._uninstall_rotate_screen_script()
+    def uninstall_autostart():
         if not Setup.already_autostart_installed():
             log.info("autostart already not enabled")
             return True
         Setup._uninstall_autostart()
 
     @staticmethod
-    def _uninstall_rotate_screen_script():
-        pass  # todo
-
-    @staticmethod
     def help():
-        log.info("usage: python3 carpi.py [rotate] {other arguments}")
-        log.info("[rotate]: -r\t--rotate")
-        log.info("{other arguments}:")
+        log.info("usage: python3 carpi.py {arguments}")
+        log.info("{arguments}:")
         log.info("\t-i\t--install")
         log.info("\t-u\t--uninstall")
         exit()
@@ -79,16 +62,13 @@ class Setup(object):
     @staticmethod
     def parse_arguments(arguments):
         i = 0
-        r = True
         log.info("parsing args")
         while i < len(arguments):
             a = arguments[i]
             if a in ["-i", "--install"]:
-                Setup.install_autostart(r)
+                Setup.install_autostart()
             elif a in ["-u", "--uninstall"]:
-                Setup.uninstall_autostart(r)
-            elif a in ["-r", "--rotate"]:
-                r = True
+                Setup.uninstall_autostart()
             else:
                 Setup.help()
 
