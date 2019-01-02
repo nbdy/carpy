@@ -143,14 +143,14 @@ class UI(App):
     def wifi_info(self):
         log.debug("building wifi info screen")
         Text(self, text="wifi:", color="white", grid=[4, 4])
-        Text(self, text=Network.get_wifi_connected_string(), color="white", grid=[12, 4])
+        Text(self, text=Network.get_wifi_connected_string(), color="white", grid=[8, 4])
         Text(self, text=Network.get_connected_essid(), color="white", grid=[128, 4])
         Text(self, text=Network.get_wifi_connected_ip(), color="white", grid=[200, 4])
 
     def bluetooth_info(self):
         log.debug("building bluetooth info screen")
-        Text(self, text="bluetooth:", color="white", grid=[4, 12])
-        Text(self, text=Bluetooth.get_bluetooth_status_string(), color="white", grid=[12, 12])
+        Text(self, text="bluetooth:", color="white", grid=[8, 12])
+        Text(self, text=Bluetooth.get_bluetooth_status_string(), color="white", grid=[16, 12])
 
     def gps_info(self):
         log.debug("building gps info screen")
