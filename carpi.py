@@ -106,7 +106,7 @@ class UI(Window):
         super(UI, self).__init__()
         log.debug("initializing ui")
         self.set_fullscreen(True)
-        self.set_size(480, 320)
+        # self.set_size(480, 320)
         self.update_wifi_info()
         self.lbl_bluetooth = Label("bluetooth:")
         self.lbl_bluetooth.x = 4
