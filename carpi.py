@@ -5,9 +5,7 @@ from loguru import logger as log
 import netifaces
 from os.path import abspath, dirname
 
-from pyglet.window import Window
-from pyglet.text import Label
-from pyglet import app as pyglapp
+from guizero import App, Text
 
 from subprocess import check_output, CalledProcessError
 
@@ -102,7 +100,7 @@ class GPS(Thread):
             sleep(self.sleep_time)
 
 
-class UI(Window):
+class UI(App):
     box = None
 
     lbl_wifi = None
@@ -116,34 +114,11 @@ class UI(Window):
     def __init__(self):
         super(UI, self).__init__()
         log.debug("initializing ui")
-        self.set_fullscreen(True)
-        # self.set_size(480, 320)
-        self.update_wifi_info()
-        self.lbl_bluetooth = Label("bluetooth:")
-        self.lbl_bluetooth.x = 4
-        self.lbl_bluetooth.y = 292
-        log.debug("initialized ui")
-
-    def update_wifi_info(self):
-        self.lbl_wifi = Label("wifi:", x=self.width//2, y=self.height//2, font_size=300)
-        self.lbl_wifi_value_status = Label(Network.get_wifi_connected_string())
-        self.lbl_wifi_value_status.x = 42
-        self.lbl_wifi_value_status.y = 306
-        self.lbl_wifi_value_essid = Label(Network.get_connected_essid())
-        self.lbl_wifi_value_essid.x = 142
-        self.lbl_wifi_value_essid.y = 306
-        self.lbl_wifi_value_ip = Label(Network.get_wifi_connected_ip())
-        self.lbl_wifi_value_ip.x = 336
-        self.lbl_wifi_value_ip.y = 306
-
-    def on_draw(self):
-        self.clear()
-        if self.menu == 0:
-            self.lbl_wifi.draw()
-            self.lbl_wifi_value_status.draw()
-            self.lbl_wifi_value_essid.draw()
-            self.lbl_wifi_value_ip.draw()
-            self.lbl_bluetooth.draw()
+        self.width = 480
+        self.height = 320
+        self.tk.attributes("-fullscreen", True)
+        log.debug("initialized ui; displaying")
+        self.display()
 
 
 class Main(object):
@@ -154,8 +129,6 @@ class Main(object):
         log.debug("initializing")
         self.gps = GPS(self._gps_callback)
         self.ui = UI()
-        log.debug("running pyglet app")
-        pyglapp.run()
 
     def _gps_callback(self, data):
         pass  # todo update position
