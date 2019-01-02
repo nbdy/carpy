@@ -8,7 +8,7 @@ from pyglet.window import Window
 from pyglet.text import Label
 from pyglet import app as pyglapp
 
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 
 
 # todo
@@ -36,7 +36,10 @@ class Network(object):
 
     @staticmethod
     def get_connected_essid():
-        o = str(check_output(["iwgetid"]))
+        try:
+            o = str(check_output(["iwgetid"]))
+        except CalledProcessError:
+            return ""
         if "ESSID" not in o:
             return ""
         return o.split(':"')[1].split('"')[0]
@@ -116,10 +119,8 @@ class UI(Window):
         self.lbl_bluetooth.y = 292
 
     def update_wifi_info(self):
-        self.lbl_wifi = Label("wifi:")
-        self.lbl_wifi.x = 4
-        self.lbl_wifi.y = 32
-        self.lbl_wifi_value_status = Label(Network.get_wifi_connected_string(), font_size=48)
+        self.lbl_wifi = Label("wifi:", x=self.width//2, y=self.height//2)
+        self.lbl_wifi_value_status = Label(Network.get_wifi_connected_string(),)
         self.lbl_wifi_value_status.x = 42
         self.lbl_wifi_value_status.y = 306
         self.lbl_wifi_value_essid = Label(Network.get_connected_essid())
@@ -155,8 +156,4 @@ class Main(object):
 
 if __name__ == '__main__':
     log.debug("going to run")
-    try:
-        Main()
-    except:
-        from os import system, getcwd
-        system("sudo python3 " + getcwd() + "/" + __file__)  # in case something like iwgetid fucks up
+    Main()
