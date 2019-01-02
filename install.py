@@ -61,7 +61,7 @@ class Setup(object):
 
     @staticmethod
     def parse_arguments(arguments):
-        i = 0
+        i = 1
         log.info("parsing args")
         while i < len(arguments):
             a = arguments[i]
@@ -71,6 +71,7 @@ class Setup(object):
                 Setup.uninstall_autostart()
             else:
                 Setup.help()
+            i += 1
 
 
 def should_not_be_root():
