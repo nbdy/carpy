@@ -144,15 +144,15 @@ class UI(App):
         log.debug("building wifi info screen")
         Text(self, text="wifi:", color="white", grid=[8, 4])
         Text(self, text=Network.get_wifi_connected_string(), color="white", grid=[18, 4])
-        Text(self, text=Network.get_connected_essid(), color="white", grid=[40, 4])
+        Text(self, text=Network.get_connected_essid(), color="white", grid=[38, 4])
         Text(self, text=Network.get_wifi_connected_ip(), color="white", grid=[80, 4])
 
-    def bluetooth_info(self):
+    def bluetooth_info(self, data):
         log.debug("building bluetooth info screen")
         Text(self, text="bluetooth:", color="white", grid=[8, 8])
-        Text(self, text=Bluetooth.get_bluetooth_status_string(), color="white", grid=[18, 8])
+        Text(self, text=Bluetooth.get_bluetooth_status_string(), color="white", grid=[19, 8])
 
-    def gps_info(self):
+    def gps_info(self, data):
         log.debug("building gps info screen")
         Text(self, text="gps:", color="white", grid=[8, 20])
         Text(self, text="todo", color="white", grid=[18, 20])
@@ -169,6 +169,12 @@ class Main(object):
 
     def _gps_callback(self, data):
         pass  # todo update position
+
+    def _bluetooth_devices_found_callback(self):
+        self.ui.bluetooth_info({})  # todo
+
+    def _wifi_connected_callback(self):
+        self.ui.wifi_info()
 
 
 if __name__ == '__main__':
