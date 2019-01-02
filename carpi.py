@@ -112,13 +112,17 @@ class UI(App):
     menu = 0
 
     def __init__(self):
-        super(UI, self).__init__()
+        super(UI, self).__init__(layout="grid")
         log.debug("initializing ui")
-        self.width = 480
-        self.height = 320
+        self.bg = "black"
         self.tk.attributes("-fullscreen", True)
+        self.wifi_info()
         log.debug("initialized ui; displaying")
         self.display()
+
+    def wifi_info(self):
+        log.debug("building wifi information")
+        Text(self, text="wifi:", color="white", grid=[4, 4])
 
 
 class Main(object):
