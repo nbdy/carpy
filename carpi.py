@@ -11,6 +11,8 @@ from pyglet import app as pyglapp
 from subprocess import check_output, CalledProcessError
 
 
+log.add("output.log", enqueue=True, backtrace=True)
+
 # todo
 # labels for wifi
 # - is connected
@@ -39,6 +41,7 @@ class Network(object):
         try:
             o = str(check_output(["iwgetid"]))
         except CalledProcessError:
+            log.exception("iwgetid exception")
             return ""
         if "ESSID" not in o:
             return ""
@@ -52,6 +55,7 @@ class Network(object):
         try:
             return netifaces.ifaddresses(iface)[family]
         except KeyError:
+            log.exception("get status '" + iface + "' keyerror exception")
             return None
 
     @staticmethod
