@@ -119,8 +119,8 @@ class UI(Window):
         self.lbl_bluetooth.y = 292
 
     def update_wifi_info(self):
-        self.lbl_wifi = Label("wifi:", x=self.width//2, y=self.height//2)
-        self.lbl_wifi_value_status = Label(Network.get_wifi_connected_string(),)
+        self.lbl_wifi = Label("wifi:", x=self.width//2, y=self.height//2, font_size=300)
+        self.lbl_wifi_value_status = Label(Network.get_wifi_connected_string())
         self.lbl_wifi_value_status.x = 42
         self.lbl_wifi_value_status.y = 306
         self.lbl_wifi_value_essid = Label(Network.get_connected_essid())
