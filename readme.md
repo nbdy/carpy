@@ -1,11 +1,11 @@
 ## carpi
 
-###why?
+### why?
 my ford fiesta ja8 has a slot under the radio, which isn't used and i broke the cover.<br>
 android radio replacements are mostly for a 2 din cover, which looks really bad.<br>
 a linux system with touch and custom ui seemed like the best solution.<br>
 
-###features:
+### features:
 done:
 - basic ui
 
@@ -15,13 +15,13 @@ todo:
 - wardriving
 - ...
 
-###installation:
+### installation:
 ```
 sudo ./dependencies.sh
 sudo python3 install.py -i
 ```
 
-###faq:
+### faq:
 Q: after assembly and installation the touchscreen input axis are inverted<br>
 A: sudo cp 99-calibration.conf /usr/share/X11/xorg.conf.d/
 
