@@ -122,6 +122,7 @@ class UI(Window):
         self.lbl_bluetooth = Label("bluetooth:")
         self.lbl_bluetooth.x = 4
         self.lbl_bluetooth.y = 292
+        log.debug("initialized ui")
 
     def update_wifi_info(self):
         self.lbl_wifi = Label("wifi:", x=self.width//2, y=self.height//2, font_size=300)
@@ -153,6 +154,7 @@ class Main(object):
         log.debug("initializing")
         self.gps = GPS(self._gps_callback)
         self.ui = UI()
+        log.debug("running pyglet app")
         pyglapp.run()
 
     def _gps_callback(self, data):
