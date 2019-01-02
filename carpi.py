@@ -3,6 +3,7 @@ from threading import Thread
 from gps import gps, WATCH_ENABLE
 from loguru import logger as log
 import netifaces
+from os.path import abspath
 
 from pyglet.window import Window
 from pyglet.text import Label
@@ -11,7 +12,7 @@ from pyglet import app as pyglapp
 from subprocess import check_output, CalledProcessError
 
 
-log.add("output.log", enqueue=True, backtrace=True)
+log.add(str(abspath(__file__).split('/')[0:-1]) + "/output.log", enqueue=True, backtrace=True)
 
 # todo
 # labels for wifi
