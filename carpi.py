@@ -118,8 +118,8 @@ class UI(Window):
     def update_wifi_info(self):
         self.lbl_wifi = Label("wifi:")
         self.lbl_wifi.x = 4
-        self.lbl_wifi.y = 1000
-        self.lbl_wifi_value_status = Label(Network.get_wifi_connected_string())
+        self.lbl_wifi.y = 32
+        self.lbl_wifi_value_status = Label(Network.get_wifi_connected_string(), font_size=48)
         self.lbl_wifi_value_status.x = 42
         self.lbl_wifi_value_status.y = 306
         self.lbl_wifi_value_essid = Label(Network.get_connected_essid())
@@ -159,4 +159,4 @@ if __name__ == '__main__':
         Main()
     except:
         from os import system, getcwd
-        system("sudo python3 " + getcwd() + "/" + __file__)
+        system("sudo python3 " + getcwd() + "/" + __file__)  # in case something like iwgetid fucks up
