@@ -4,6 +4,7 @@ from gps import gps, WATCH_ENABLE
 from loguru import logger as log
 import netifaces
 from os.path import abspath, dirname
+from os import listdir
 
 from guizero import App, Text
 
@@ -25,6 +26,23 @@ log.add(dirname(abspath(__file__)) + "/output.log", enqueue=True, backtrace=True
 #
 # rpi radio sender
 # https://howtoraspberrypi.com/create-radio-transmitter-raspberry-pi/
+
+
+class Bluetooth(object):
+    @staticmethod
+    def get_bluetooth_device():
+        for f in listdir("/dev/"):
+            if f.startswith("hci"):
+                return f
+        return None
+
+    @staticmethod
+    def get_bluetooth_status_string():
+        dev = Bluetooth.get_bluetooth_device()
+        if dev is None:
+            return "no bluetooth device"
+        return dev
+
 
 
 class Network(object):
@@ -117,12 +135,27 @@ class UI(App):
         self.bg = "black"
         self.tk.attributes("-fullscreen", True)
         self.wifi_info()
+        self.bluetooth_info()
+        self.gps_info()
         log.debug("initialized ui; displaying")
         self.display()
 
     def wifi_info(self):
-        log.debug("building wifi information")
+        log.debug("building wifi info screen")
         Text(self, text="wifi:", color="white", grid=[4, 4])
+        Text(self, text=Network.get_wifi_connected_string(), color="white", grid=[12, 4])
+        Text(self, text=Network.get_connected_essid(), color="white", grid=[128, 4])
+        Text(self, text=Network.get_wifi_connected_ip(), color="white", grid=[200, 4])
+
+    def bluetooth_info(self):
+        log.debug("building bluetooth info screen")
+        Text(self, text="bluetooth:", color="white", grid=[4, 12])
+        Text(self, text=Bluetooth.get_bluetooth_status_string(), color="white", grid=[12, 12])
+
+    def gps_info(self):
+        log.debug("building gps info screen")
+        Text(self, text="gps:", color="white", grid=[4, 20])
+        Text(self, text="todo", color="white", grid=[12, 20])
 
 
 class Main(object):

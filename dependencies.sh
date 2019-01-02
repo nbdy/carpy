@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-sudo apt install python3 python3-dev python3-pip gpsd gpsd-clients python3-tkinter -y
+sudo apt install python3 python3-dev python3-pip gpsd gpsd-clients libjpeg-dev libtiff-dev libfreetype-dev -y
 sudo pip3 install -r requirements.txt
 cd /tmp/
 wget http://osoyoo.com/driver/LCD_show_35hdmi.tar.gz
