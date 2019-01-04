@@ -3,9 +3,11 @@ from threading import Thread
 from gps import gps, WATCH_ENABLE
 from loguru import logger as log
 import netifaces
-from os.path import abspath, dirname
+from os.path import abspath, dirname, isfile, isdir
 from os import listdir
-
+from scapy.all import sniff
+from scapy.layers.dot11 import Dot11, Dot11Beacon
+from subprocess import check_output
 from guizero import App, Text
 
 from subprocess import check_output, CalledProcessError
@@ -42,7 +44,6 @@ class Bluetooth(object):
         if dev is None:
             return "no bluetooth device"
         return dev
-
 
 
 class Network(object):
@@ -117,6 +118,101 @@ class GPS(Thread):
             log.debug("sleeping for " + str(self.sleep_time))
             sleep(self.sleep_time)
 
+    def stop(self):
+        self.do_run = False
+
+
+class WiFi(Thread):
+    daemon = True
+    do_run = False
+
+    iface = None
+    callback = None
+
+    def __init__(self, callback, iface="wlan0mon"):
+        Thread.__init__(self)
+        self.callback = callback
+        self.do_run = True
+        self.iface = iface
+
+    def _scapy_cb(self, pkt):
+        if pkt.haslayer(Dot11):
+            pass
+
+    def _scapy_stop_filter(self, pkt):
+        return not self.do_run
+
+    def run(self):
+        sniff(iface=self.iface, lfilter=self._scapy_cb, stop_filter=self._scapy_stop_filter)
+
+    def stop(self):
+        self.do_run = False
+
+
+# todo: support nested albums
+class AudioLibraryManager(object):
+    directory = None
+    albums = []
+    songs = []
+
+    @staticmethod
+    def append_slash(data):
+        if not data.endswith("/"):
+            data += "/"
+        return data
+
+    @staticmethod
+    def get_songs_in_dir(directory):
+        directory = AudioLibraryManager.append_slash(directory)
+        songs = []
+        for fp in listdir(directory):
+            if isfile(fp) and fp[-4:-1] in [".wav", ".mp3"]:
+                songs.append(directory + fp)
+
+    @staticmethod
+    def get_albums_in_dir(directory):
+        directory = AudioLibraryManager.append_slash(directory)
+        albums = []
+        for fp in listdir(directory):
+            if isdir(fp):
+                albums.append(fp)
+        return albums
+
+    def __init__(self, directory="~/Music/"):
+        directory = self.append_slash(directory)
+        self.directory = directory
+
+    def get_albums(self):
+        return self.get_albums_in_dir(self.directory)
+
+    def get_all_songs(self):
+        songs = []
+        for a in self.get_albums():
+            songs += self.get_songs_in_dir(a)
+        return songs
+
+
+class FMTransmitter(object):
+    current_song = None
+    pi_fm_rds_path = "/opt/PiFmRds/src/pi_fm_rds"
+
+    def __init__(self):
+        if not isfile(self.pi_fm_rds_path):
+            raise Exception("/opt/PiFmRds/src/pi_fm_rds does not exist")
+
+    def play(self, fp):
+        if not isfile(fp):
+            return False
+        if fp.endswith(".mp3"):
+            check_output(["sox", "-t", fp, "-t", "wav", "-", "|", "./" + self.pi_fm_rds_path, "-audio", "-"])
+            return True
+        elif fp.endswith(".wav"):
+            check_output(["./" + self.pi_fm_rds_path, "-audio", fp])
+            return True
+        else:
+            log.error("not sure what '" + fp[-4:-1] + "'kind of file extension is")
+            return False
+
 
 class UI(App):
     box = None
@@ -126,19 +222,26 @@ class UI(App):
     lbl_wifi_value_essid = None
     lbl_wifi_value_ip = None
 
-    # 0: main
+    # 01: main horizontal
+    # 10: main vertical
     menu = 0
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super(UI, self).__init__(layout="grid", width=480, height=320)
         log.debug("initializing ui")
         self.bg = "black"
         self.tk.attributes("-fullscreen", True)
-        self.wifi_info()
-        self.bluetooth_info()
-        self.gps_info()
         log.debug("initialized ui; displaying")
         self.display()
+
+    def vertical(self):
+        pass
+
+    def horizontal(self):
+        pass
+
+    def translate(self):
+        pass
 
     def wifi_info(self):
         log.debug("building wifi info screen")
@@ -161,14 +264,23 @@ class UI(App):
 class Main(object):
     ui = None
     gps = None
+    wifi = None
 
     def __init__(self):
         log.debug("initializing")
         self.gps = GPS(self._gps_callback)
+        self.wifi = WiFi(self._wifi_callback)
         self.ui = UI()
+
+    def start(self):
+        self.gps.run()
+        self.wifi.run()
 
     def _gps_callback(self, data):
         pass  # todo update position
+
+    def _wifi_callback(self, data):
+        pass  # todo check what has been found and inform ui
 
     def _bluetooth_devices_found_callback(self):
         self.ui.bluetooth_info({})  # todo
