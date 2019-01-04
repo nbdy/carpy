@@ -7,13 +7,20 @@ from os.path import abspath, dirname, isfile, isdir
 from os import listdir
 from scapy.all import sniff
 from scapy.layers.dot11 import Dot11, Dot11Beacon
-from subprocess import check_output
-from guizero import App, Text
-
+from subprocess import Popen, PIPE, check_output
+from json import loads
+from jinja2 import Template
+import sounddevice as sd
+import soundfile as sf
+import gi
 from subprocess import check_output, CalledProcessError
+gi.require_version('Gtk', '3.0')
+from gi.repository.Gtk import Window, Label, StateType, Box
+from gi.repository import Gdk
 
+RUNNING_PATH = dirname(abspath(__file__)) + "/"
 
-log.add(dirname(abspath(__file__)) + "/output.log", enqueue=True, backtrace=True)
+log.add(RUNNING_PATH + "output.log", enqueue=True, backtrace=True)
 
 # todo
 # labels for wifi
@@ -112,7 +119,7 @@ class GPS(Thread):
         while self.do_run:
             client.next()
             if client.fix != self.current_position:
-                log.debug("position has changed; informing main")
+                log.debug("position has changed; informing main.json")
                 self.current_position = client.fix
                 self.callback(client.fix)
             log.debug("sleeping for " + str(self.sleep_time))
@@ -149,21 +156,23 @@ class WiFi(Thread):
         self.do_run = False
 
 
-# todo: support nested albums
-class AudioLibraryManager(object):
-    directory = None
-    albums = []
-    songs = []
-
+class Static(object):
     @staticmethod
     def append_slash(data):
         if not data.endswith("/"):
             data += "/"
         return data
 
+
+# todo: support nested albums
+class AudioLibrary(object):
+    directory = None
+    albums = []
+    songs = []
+
     @staticmethod
     def get_songs_in_dir(directory):
-        directory = AudioLibraryManager.append_slash(directory)
+        directory = Static.append_slash(directory)
         songs = []
         for fp in listdir(directory):
             if isfile(fp) and fp[-4:-1] in [".wav", ".mp3"]:
@@ -171,7 +180,7 @@ class AudioLibraryManager(object):
 
     @staticmethod
     def get_albums_in_dir(directory):
-        directory = AudioLibraryManager.append_slash(directory)
+        directory = Static.append_slash(directory)
         albums = []
         for fp in listdir(directory):
             if isdir(fp):
@@ -179,7 +188,7 @@ class AudioLibraryManager(object):
         return albums
 
     def __init__(self, directory="~/Music/"):
-        directory = self.append_slash(directory)
+        directory = Static.append_slash(directory)
         self.directory = directory
 
     def get_albums(self):
@@ -192,11 +201,44 @@ class AudioLibraryManager(object):
         return songs
 
 
-class FMTransmitter(object):
-    current_song = None
-    pi_fm_rds_path = "/opt/PiFmRds/src/pi_fm_rds"
+class Player(Thread):
+    daemon = True
+    do_run = False
 
-    def __init__(self):
+    queue = []
+    current_song = None
+
+    audio_lib = None
+
+    def __init__(self, audio_lib):
+        Thread.__init__(self)
+        self.audio_lib = audio_lib
+
+    def play(self, fp):
+        pass
+
+    def pause(self):
+        pass
+
+    def unpause(self):
+        pass
+
+    def enqueue(self, fp):
+        self.queue.append(fp)
+
+    def enqueue_dir(self, fp):
+        self.queue += self.audio_lib.get_songs_in_dir(fp)
+
+    def stop(self):
+        pass
+
+
+class FMTransmitter(Player):
+    pi_fm_rds_path = "/opt/PiFmRds/src/pi_fm_rds"
+    css = None
+
+    def __init__(self, audio_lib):
+        Player.__init__(self, audio_lib)
         if not isfile(self.pi_fm_rds_path):
             raise Exception("/opt/PiFmRds/src/pi_fm_rds does not exist")
 
@@ -204,45 +246,101 @@ class FMTransmitter(object):
         if not isfile(fp):
             return False
         if fp.endswith(".mp3"):
-            check_output(["sox", "-t", fp, "-t", "wav", "-", "|", "./" + self.pi_fm_rds_path, "-audio", "-"])
+            self.css = Popen(["sox", "-t", fp, "-t", "wav", "-", "|", "./" + self.pi_fm_rds_path,
+                              "-audio", "-"], stdout=PIPE)
             return True
         elif fp.endswith(".wav"):
-            check_output(["./" + self.pi_fm_rds_path, "-audio", fp])
+            self.css = Popen(["./" + self.pi_fm_rds_path, "-audio", fp], stdout=PIPE)
             return True
         else:
             log.error("not sure what '" + fp[-4:-1] + "'kind of file extension is")
             return False
 
 
-class UI(App):
+class AuxOut(Player):
+    def __init__(self, audio_lib):
+        Player.__init__(self, audio_lib)
+
+    def play(self, fp):
+        self.current_song = fp
+        data, fs = sf.read(fp, dtype='float32')
+        sd.play(data, fs)
+
+    def pause(self):
+        sd.stop()
+
+    def unpause(self):
+        ns = self.queue[0]
+        self.queue.pop(0)
+        self.play(ns)
+
+    def stop(self):
+        sd.stop()
+
+
+class UI(Window):
+    class Actions(object):
+        EXTRA_DATA = "data"
+
+        class Audio(object):
+            PLAY = 0
+            PAUSE = 1
+            QUEUE_SONG = 2
+            QUEUE_DIRECTORY = 3
+
+        class Player(object):
+            AUX = 0
+            FM = 1
+
+        class UI(object):
+            RELOAD = 0
+            TEMPLATE = "ui-template"
+            DEPENDENCIES = "ui-dependencies"
+
+    class Templates(object):
+        FOLDER = "templates/"
+        ENTRY = "main.json"
+
+        @staticmethod
+        def build_path(fn):
+            return RUNNING_PATH + UI.Templates.FOLDER + fn
+
+    current_template = None
     box = None
+    width = 480
+    height = 320
 
-    lbl_wifi = None
-    lbl_wifi_value_status = None
-    lbl_wifi_value_essid = None
-    lbl_wifi_value_ip = None
-
-    # 01: main horizontal
-    # 10: main vertical
-    menu = 0
-
-    def __init__(self, **kwargs):
-        super(UI, self).__init__(layout="grid", width=480, height=320)
+    def __init__(self, cb):
+        Window.__init__(self)
         log.debug("initializing ui")
-        self.bg = "black"
-        self.tk.attributes("-fullscreen", True)
+        self.action_callback = cb
+        self.fullscreen()
+        self.override_background_color(StateType.NORMAL, Gdk.RGBA(.5, .5, .5, .5))
         log.debug("initialized ui; displaying")
         self.display()
 
-    def vertical(self):
-        pass
+    def load_template(self, name, ctx):
+        self.box = Box(self, layout="grid")
+        log.debug(ctx)
+        self.current_template = name
+        with open(UI.Templates.build_path(name)) as data:
+            tpl = Template(data.read())
+        json = loads(tpl.render(ctx=ctx))
+        items = json["items"]
+        log.debug(items)
+        for key in items.keys():
+            c = items[key]["class"].lower()
+            log.debug("adding " + c + ": " + key)
+            if c == "text":
+                Label(self.box, text=items[key]["text"], color=items[key]["color"], grid=items[key]["grid"])
+            elif c == "button":
+                pass  # todo
 
-    def horizontal(self):
-        pass
+        self.display()
+        self.update()
 
-    def translate(self):
-        pass
 
+'''
     def wifi_info(self):
         log.debug("building wifi info screen")
         Text(self, text="wifi:", color="white", grid=[8, 4])
@@ -259,34 +357,70 @@ class UI(App):
         log.debug("building gps info screen")
         Text(self, text="gps:", color="white", grid=[8, 20])
         Text(self, text="todo", color="white", grid=[18, 20])
+'''
 
 
 class Main(object):
     ui = None
     gps = None
     wifi = None
+    network = None
 
-    def __init__(self):
-        log.debug("initializing")
-        self.gps = GPS(self._gps_callback)
-        self.wifi = WiFi(self._wifi_callback)
-        self.ui = UI()
+    audio_lib = None
+    player = None
 
     def start(self):
         self.gps.run()
         self.wifi.run()
 
-    def _gps_callback(self, data):
+    def __init__(self):
+        log.debug("initializing")
+        self.audio_lib = AudioLibrary()
+        self.network = Network()
+
+        self.gps = GPS(self._gps_cb)
+        self.wifi = WiFi(self._wifi_cb)
+        self.ui = UI(self._ui_cb)
+        self.ui.load_template("main.json", self.__deps2ctx(
+            loads(open(RUNNING_PATH + "templates/main.json").read())["dependencies"]))
+
+    def __deps2ctx(self, deps):
+        log.debug(deps)
+        ctx = {}
+        for dep in deps:
+            if dep in self.__dict__.keys():
+                ctx[dep] = self.__dict__[dep]
+            else:
+                log.error(dep + " has not been implemented")
+        log.debug(ctx)
+        return ctx
+
+    def _ui_cb(self, action, **kwargs):
+        # UI
+        if action == UI.Actions.UI.RELOAD:
+            self.ui.load_template(kwargs.get(UI.Actions.UI.TEMPLATE,
+                                             self.__deps2ctx(kwargs.get(UI.Actions.UI.DEPENDENCIES))))
+        # PLAYER
+        if action == UI.Actions.Audio.PLAY:
+            self.player.play(kwargs.get(UI.Actions.EXTRA_DATA))
+        elif action == UI.Actions.Audio.PAUSE:
+            self.player.pause()
+        elif action == UI.Actions.Audio.QUEUE_SONG:
+            self.player.enqueue(kwargs.get(UI.Actions.EXTRA_DATA))
+        elif action == UI.Actions.Audio.QUEUE_DIRECTORY:
+            self.player.enqueue_dir(kwargs.get(UI.Actions.EXTRA_DATA))
+
+    def _ui_player_selected_cb(self, pid):
+        if pid == UI.Actions.Player.FM:
+            self.player = FMTransmitter(self.audio_lib)
+        elif pid == UI.Actions.Player.AUX:
+            self.player = AuxOut(self.audio_lib)
+
+    def _gps_cb(self, data):
         pass  # todo update position
 
-    def _wifi_callback(self, data):
+    def _wifi_cb(self, data):
         pass  # todo check what has been found and inform ui
-
-    def _bluetooth_devices_found_callback(self):
-        self.ui.bluetooth_info({})  # todo
-
-    def _wifi_connected_callback(self):
-        self.ui.wifi_info()
 
 
 if __name__ == '__main__':
