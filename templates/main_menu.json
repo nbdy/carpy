@@ -1,0 +1,47 @@
+{
+  "dependencies": [],
+
+  "items": {
+    "btn_overview": {
+      "id": 1,
+      "class": "button",
+      "text": "overview",
+      "color": "#ffffff",
+      "action": "add",
+      "action_key": 0,
+      "ui-template": "main.json"
+    },
+
+    "btn_audio": {
+      "id": 2,
+      "class": "button",
+      "text": "audio",
+      "color": "#ffffff",
+      "action": "attach_next_to",
+      "params": {
+        "neighbor_key": "btn_overview",
+        "position_type": "b",
+        "width": 2,
+        "height": 1
+      },
+      "action_key": 0,
+      "ui-template": "audio.json"
+    },
+
+    "btn_wifi": {
+      "id": 3,
+      "class": "button",
+      "text": "wifi",
+      "color": "#ffffff",
+      "action": "attach_next_to",
+      "params": {
+        "neighbor_key": "btn_audio",
+        "position_type": "b",
+        "width": 2,
+        "height": 1
+      },
+      "action_key": 0,
+      "ui-template": "wifi.json"
+    }
+  }
+}

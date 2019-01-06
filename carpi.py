@@ -333,6 +333,7 @@ class AuxOut(Player):
 class UI(Gtk.Window):
     class Actions(object):
         EXTRA_DATA = "data"
+        RELOAD = 0
 
         class Audio(object):
             PLAY = 0
@@ -344,14 +345,10 @@ class UI(Gtk.Window):
             AUX = 0
             FM = 1
 
-        class UI(object):
-            RELOAD = 0
-            TEMPLATE = "ui-template"
-            DEPENDENCIES = "ui-dependencies"
-
     class Templates(object):
         FOLDER = "templates/"
         ENTRY = "main.json"
+        UI_EXTRA = "ui-template"
 
         @staticmethod
         def build_path(fn):
@@ -393,7 +390,8 @@ class UI(Gtk.Window):
             return lbl
         elif cls == "button":
             def cb():
-                self.callback(UI.Actions.UI.RELOAD, item["ui-template"])
+                log.debug(item["key"] + " button clicked")
+                self.callback(UI.Action.RELOAD, item["ui-template"])
             btn = Gtk.Button.new_with_label(item["text"])
             btn.connect("clicked", cb)
             return btn
@@ -473,6 +471,7 @@ class Main(Thread):
         self.ui.load_template("main.json", self.__deps2ctx(
             loads(open(RUNNING_PATH + "templates/main.json").read())["dependencies"]))
         while self.do_run:
+            self._ui_cb(UI.Actions.RELOAD, template="main.json")
             log.debug("sleeping for 2 seconds")
             sleep(2)
 
@@ -505,8 +504,10 @@ class Main(Thread):
 
     def _ui_cb(self, action, **kwargs):
         # UI
-        if action == UI.Actions.UI.RELOAD:
-            fn = kwargs.get(UI.Actions.UI.TEMPLATE)
+        log.debug(action)
+        log.debug(kwargs)
+        if action == UI.Actions.RELOAD:
+            fn = kwargs.get("template")
             self.ui.load_template(fn, self.__get_ctx(fn))
         # PLAYER
         if action == UI.Actions.Audio.PLAY:
