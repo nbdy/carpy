@@ -10,7 +10,7 @@ a linux system w/ custom ui/case seemed like the best solution.<br>
 - 3,5" gpio display (waveshare/etc.)<br>
 - raspberry pi 3<br>
 - 12 male/female jumper cables<br>
-- hdmi ribbon cable
+- hdmi ribbon cable (50cm) (both ends are L pieces)
 
 
 ### features:

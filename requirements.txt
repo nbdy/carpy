@@ -1,3 +1,7 @@
 loguru
-guizero
+scapy
+jinja2
+sounddevice
+soundfile
 netifaces
+gps
