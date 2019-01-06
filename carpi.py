@@ -12,11 +12,12 @@ from json import loads
 from jinja2 import Template
 import sounddevice as sd
 import soundfile as sf
-import gi
 from subprocess import check_output, CalledProcessError
-gi.require_version('Gtk', '3.0')
-from gi.repository.Gtk import Window, Label, StateType, Box
-from gi.repository import Gdk
+import kivy
+kivy.require('1.0.6')
+from kivy.app import App
+from kivy.uix.label import Label
+from kivy.core.window import Window
 
 RUNNING_PATH = dirname(abspath(__file__)) + "/"
 
@@ -157,6 +158,13 @@ class WiFi(Thread):
 
 
 class Static(object):
+    POSITION_TYPES = {
+        "bottom": PositionType.BOTTOM,
+        "right": PositionType.RIGHT,
+        "left": PositionType.LEFT,
+        "top": PositionType.TOP
+    }
+
     @staticmethod
     def append_slash(data):
         if not data.endswith("/"):
@@ -278,7 +286,7 @@ class AuxOut(Player):
         sd.stop()
 
 
-class UI(Window):
+class UI(object):
     class Actions(object):
         EXTRA_DATA = "data"
 
@@ -305,22 +313,51 @@ class UI(Window):
         def build_path(fn):
             return RUNNING_PATH + UI.Templates.FOLDER + fn
 
+    class Display(App):
+        def build(self):
+            pass
+
+    dspl = None
+
     current_template = None
-    box = None
     width = 480
     height = 320
+    box = None
 
-    def __init__(self, cb):
-        Window.__init__(self)
-        log.debug("initializing ui")
-        self.action_callback = cb
-        self.fullscreen()
-        self.override_background_color(StateType.NORMAL, Gdk.RGBA(.5, .5, .5, .5))
-        log.debug("initialized ui; displaying")
-        self.display()
+    def __init__(self):
+        Window.size = (480, 320)
+        Window.fullscreen = True
+        self.dspl = UI.Display()
+
+    @staticmethod
+    def _add_to_grid(box, item):
+        tmp = None
+        c = item["class"].lower()
+        if c == "text":
+            tmp = Label(item["text"])
+            tmp.set_markup("<span foreground=\"" + item["color"] + "\">")
+        elif c == "button":
+            pass  # todo
+
+        if tmp is None:
+            return False
+
+        tmp.show()
+
+        a = item["action"].lower()
+        if a == "add":
+            box.add(tmp)
+        elif a == "attach":
+            box.attach()  # todo
+        elif a == "attach_next_to":
+            box.attach_next_to()  # todo
+
+        return True
 
     def load_template(self, name, ctx):
-        self.box = Box(self, layout="grid")
+        self.remove(self.box)
+        self.box = Box()
+        self.add(self.box)
         log.debug(ctx)
         self.current_template = name
         with open(UI.Templates.build_path(name)) as data:
@@ -329,15 +366,19 @@ class UI(Window):
         items = json["items"]
         log.debug(items)
         for key in items.keys():
-            c = items[key]["class"].lower()
-            log.debug("adding " + c + ": " + key)
-            if c == "text":
-                Label(self.box, text=items[key]["text"], color=items[key]["color"], grid=items[key]["grid"])
-            elif c == "button":
-                pass  # todo
+            log.debug("adding " + items[key]["class"] + ": " + key)
+            self._add_to_grid(self.box, items[key])
+        self.box.show_all()
 
-        self.display()
-        self.update()
+    def test(self):
+        self.remove(self.box)
+        self.box = Box(spacing=8)
+        lbl = Label("aylkajhnfkjansdlf")
+        lbl.show()
+        self.box.pack_start(lbl, True, True, 0)
+        self.add(self.box)
+        self.box.show_all()
+        self.show_all()
 
 
 '''
@@ -368,6 +409,7 @@ class Main(object):
 
     audio_lib = None
     player = None
+    gtk_main_thread = None
 
     def start(self):
         self.gps.run()
@@ -377,12 +419,16 @@ class Main(object):
         log.debug("initializing")
         self.audio_lib = AudioLibrary()
         self.network = Network()
-
         self.gps = GPS(self._gps_cb)
         self.wifi = WiFi(self._wifi_cb)
         self.ui = UI(self._ui_cb)
-        self.ui.load_template("main.json", self.__deps2ctx(
-            loads(open(RUNNING_PATH + "templates/main.json").read())["dependencies"]))
+        self.ui.test()
+        #self.ui.load_template("main.json", self.__deps2ctx(
+        #    loads(open(RUNNING_PATH + "templates/main.json").read())["dependencies"]))
+        log.debug("instatiating gtk main thread")
+        self.gtk_main_thread = Thread(target=gtk_main)
+        log.debug("running gtk main thread")
+        self.gtk_main_thread.start()
 
     def __deps2ctx(self, deps):
         log.debug(deps)

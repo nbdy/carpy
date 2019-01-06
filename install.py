@@ -82,7 +82,7 @@ def should_not_be_root():
 
 def should_be_root():
     if geteuid() != 0:
-        log.error("need root for apt calls and display driver install")
+        log.error("need root for apt calls")
         exit()
 
 

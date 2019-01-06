@@ -22,12 +22,17 @@ todo:
 - wardriving
 - ...
 
-### installation:
+### installation (autostart):
 ```
 sudo ./dependencies.sh
 sudo python3 install.py -i
 ```
 
+### uninstall (autostart):
+```
+sudo python3 install.py -u
+```
+
 ### faq:
-Q: after assembly and installation the touchscreen input axis are inverted<br>
-A: sudo cp 99-calibration.conf /usr/share/X11/xorg.conf.d/
+Q: after assembly and installation the touchscreen input axis are incorrect<br>
+A: sudo cp stl/{{version}}/99-calibration.conf /usr/share/X11/xorg.conf.d/
