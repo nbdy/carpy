@@ -1,10 +1,10 @@
 ## carpi
 
 ### why?
-my ford fiesta ja8 has a slot under the radio, which isn't used and i broke the cover.<br>
+my ford fiesta ja8 has an empty slot, which i broke the cover of.<br>
 i also wanted an programmable device in my car.<br>
 almost nothing on the market fits a 130x30mm slot.<br>
-a linux system with touch and custom ui seemed like the best solution.<br>
+a linux system w/ custom ui/case seemed like the best solution.<br>
 
 ### hardware:
 - 3,5" gpio display (waveshare/etc.)<br>
