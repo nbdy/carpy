@@ -63,7 +63,7 @@ class Network(object):
     @staticmethod
     def wifi_essid():
         try:
-            o = str(check_output(["iwgetid"]))
+            o = str(check_output(["iwgetid", "-r"]))
         except CalledProcessError:
             log.exception("iwgetid exception")
             return ""
@@ -113,6 +113,22 @@ class GPS(Thread):
         self.do_run = True
         log.debug("initialized gps")
 
+    def parse_current_position(self, c):
+        self.current_position = {
+            "longitude": c.fix.longitude,
+            "latitude": c.fix.latitude,
+            "altitude": c.fix.altitude,
+            "speed": c.fix.speed,
+            "climb": c.fix.climb,
+            "satellites_used": c.satellites_used,
+            "precision": 0,
+            "status": "tracking"
+        }
+        if "precision" in c.__dict__.keys():
+            self.current_position["precision"] = c.precision
+        else:
+            self.current_position["status"] = "not found"
+
     def run(self):
         log.debug("running")
         client = gps(mode=WATCH_ENABLE)
@@ -120,8 +136,8 @@ class GPS(Thread):
             client.next()
             if client.fix != self.current_position:
                 log.debug("position has changed; informing main.json")
-                self.current_position = client.fix
-                self.callback(client.fix)
+                self.parse_current_position(client)
+                self.callback(self.current_position)
             log.debug("sleeping for " + str(self.sleep_time))
             sleep(self.sleep_time)
 
@@ -345,6 +361,7 @@ class UI(Gtk.Window):
     width = 480
     height = 320
     box = None
+    grid = None
     gtkt = None
 
     @staticmethod
@@ -366,58 +383,63 @@ class UI(Gtk.Window):
         self.gtkt.start()
         log.debug("initialized wifi")
 
-    def refresh(self, f, **kwargs):
-        log.debug("refreshing; removing box")
-        self.remove(self.box)
-        log.debug("calling function with kwargs")
-        f(box=kwargs.get("box"), items=kwargs.get("items"))
-        log.debug("adding box back to window")
-        self.add(self.box)
-        log.debug("showing what we got")
-        self.show_all()
+    @staticmethod
+    def class2widget(item):
+        cls = item["class"]
+        if cls == "label":
+            lbl = Gtk.Label(item["text"])
+            lbl.set_markup("<span foreground=\"" + item["color"] + "\">")
+            return lbl
+        elif cls == "box":
+            box = Gtk.Box(spacing=item["spacing"], homogeneous=item["homogeneous"],
+                          orientation=Static.str2orientation(item["orientation"]))
+            if len(item["items"]) > 0:
+                box = UI.add_to_box(box, item["items"])
+            return box
+        elif cls == "grid":
+            grid = Gtk.Grid()
+            if len(item["items"]) > 0:
+                grid = UI.add_to_box(grid, item["items"])
+            return grid
 
     @staticmethod
-    def _add_to_box(box, items):
-        log.debug("adding to box")
+    def sort_items(items):
+        lst = []
+        for item in items.keys():
+            i = items[item]
+            i["key"] = item
+            lst.append(i)
+        return sorted(lst, key=lambda k: k["id"])
+
+    @staticmethod
+    def add2grid(box, items):
         tmpstrg = {}
-        for key in items.keys():
-            tmp = None
-            i = items[key]
-            c = i["class"].lower()
-            log.debug("adding " + i["class"] + ": " + key)
-            if c == "label":
-                tmp = Gtk.Label(i["text"])
-                tmp.set_markup("<span foreground=\"" + i["color"] + "\">")
-                tmpstrg[key] = tmp
-            elif c == "box":
-                tmp = Gtk.Box(spacing=i["spacing"], homogeneous=i["homogeneous"],
-                              orientation=Static.str2orientation(i["orientation"]))
-                if len(i["items"]) > 0:
-                    box = UI._add_to_box(box, i["items"])
-            elif c == "grid":
-                tmp = Gtk.Grid()
-                if len(i["items"]) > 0:
-                    tmp = UI._add_to_box(tmp, i["items"])
-
-            if tmp is None:
-                log.error(i)
-                return False
-
+        items = UI.sort_items(items)
+        for i in items:
+            tmpstrg[i["key"]] = UI.class2widget(i)
             a = i["action"].lower()
-            log.debug(a + " " + key)
             if a == "pack_start":
-                box.pack_start(tmp, True, True, 0)
+                box.pack_start(tmpstrg[i["key"]], True, True, 0)
             elif a == "pack_end":
-                box.pack_end(tmp, True, True, 0)
+                box.pack_end(tmpstrg[i["key"]], True, True, 0)
             elif a == "add":
-                box.add(tmp)
+                box.add(tmpstrg[i["key"]])
             elif a == "attach":
                 p = i["params"]
-                box.attach(tmp, p["left"], p["top"], p["width"], p["height"])
+                box.attach(tmpstrg[i["key"]], p["left"], p["top"], p["width"], p["height"])
             elif a == "attach_next_to":
                 p = i["params"]
-                box.attach_next_to(tmp, tmpstrg[p["neighbor_key"]], Static.str2positiontype(p["position_type"]),
+                box.attach_next_to(tmpstrg[i["key"]], tmpstrg[p["neighbor_key"]],
+                                   Static.str2positiontype(p["position_type"]),
                                    p["width"], p["height"])
+
+    @staticmethod
+    def add_to_box(box, items):
+        tmpstrg = {}
+        for key in items.keys():
+            i = items[key]
+            log.debug("adding " + i["class"] + ": " + key)
+            tmpstrg[key] = UI.class2widget(i)
         log.debug("everything went well")
         return box
 
@@ -426,27 +448,13 @@ class UI(Gtk.Window):
         with open(UI.Templates.build_path(name)) as data:
             tpl = Template(data.read())
         json = loads(tpl.render(ctx=ctx))
-        self.refresh(self._add_to_box, box=self.box, items=json["items"])
-
-
-'''
-    def wifi_info(self):
-        log.debug("building wifi info screen")
-        Text(self, text="wifi:", color="white", grid=[8, 4])
-        Text(self, text=Network.get_wifi_connected_string(), color="white", grid=[18, 4])
-        Text(self, text=Network.get_connected_essid(), color="white", grid=[38, 4])
-        Text(self, text=Network.get_wifi_connected_ip(), color="white", grid=[80, 4])
-
-    def bluetooth_info(self, data):
-        log.debug("building bluetooth info screen")
-        Text(self, text="bluetooth:", color="white", grid=[8, 8])
-        Text(self, text=Bluetooth.get_bluetooth_status_string(), color="white", grid=[19, 8])
-
-    def gps_info(self, data):
-        log.debug("building gps info screen")
-        Text(self, text="gps:", color="white", grid=[8, 20])
-        Text(self, text="todo", color="white", grid=[18, 20])
-'''
+        self.remove(self.box)
+        self.grid = Gtk.Grid()
+        self.box = Gtk.Box()
+        self.add2grid(self.grid, json["items"])
+        self.box.add(self.grid)
+        self.add(self.box)
+        self.show_all()
 
 
 class Main(Thread):
