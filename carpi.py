@@ -61,7 +61,7 @@ class Network(object):
         return None
 
     @staticmethod
-    def get_connected_essid():
+    def wifi_essid():
         try:
             o = str(check_output(["iwgetid"]))
         except CalledProcessError:
@@ -72,7 +72,7 @@ class Network(object):
         return o.split(':"')[1].split('"')[0]
 
     @staticmethod
-    def get_status(prefix, family=netifaces.AF_INET):
+    def status(prefix, family=netifaces.AF_INET):
         iface = Network.get_network_interface(prefix)
         if iface is None:
             return None
@@ -83,14 +83,14 @@ class Network(object):
             return None
 
     @staticmethod
-    def get_wifi_connected_string():
-        if Network.get_status("wl") is None:
+    def wifi_status():
+        if Network.status("wl") is None:
             return "not connected"
         return "connected"
 
     @staticmethod
-    def get_wifi_connected_ip():
-        s = Network.get_status("wl")
+    def wifi_ip():
+        s = Network.status("wl")
         if s is None:
             return ""
         return s[0]["addr"]
@@ -174,6 +174,18 @@ class Static(object):
             return Gtk.Orientation.HORIZONTAL
         else:
             return Gtk.Orientation.HORIZONTAL
+
+    @staticmethod
+    def str2positiontype(data):
+        data = data.lower()
+        if data in ["top", "t"]:
+            return Gtk.PositionType.TOP
+        elif data in ["bottom", "b"]:
+            return Gtk.PositionType.BOTTOM
+        elif data in ["left", "l"]:
+            return Gtk.PositionType.LEFT
+        elif data in ["right", "r"]:
+            return Gtk.PositionType.RIGHT
 
     @staticmethod
     def append_slash(data):
@@ -367,6 +379,7 @@ class UI(Gtk.Window):
     @staticmethod
     def _add_to_box(box, items):
         log.debug("adding to box")
+        tmpstrg = {}
         for key in items.keys():
             tmp = None
             i = items[key]
@@ -375,23 +388,36 @@ class UI(Gtk.Window):
             if c == "label":
                 tmp = Gtk.Label(i["text"])
                 tmp.set_markup("<span foreground=\"" + i["color"] + "\">")
+                tmpstrg[key] = tmp
             elif c == "box":
                 tmp = Gtk.Box(spacing=i["spacing"], homogeneous=i["homogeneous"],
                               orientation=Static.str2orientation(i["orientation"]))
                 if len(i["items"]) > 0:
                     box = UI._add_to_box(box, i["items"])
+            elif c == "grid":
+                tmp = Gtk.Grid()
+                if len(i["items"]) > 0:
+                    tmp = UI._add_to_box(tmp, i["items"])
 
             if tmp is None:
                 log.error(i)
                 return False
-            else:
-                log.debug("pack_start/end")
 
             a = i["action"].lower()
+            log.debug(a + " " + key)
             if a == "pack_start":
                 box.pack_start(tmp, True, True, 0)
             elif a == "pack_end":
-                box.pack_end(tmp, True, True, 0)  # todo
+                box.pack_end(tmp, True, True, 0)
+            elif a == "add":
+                box.add(tmp)
+            elif a == "attach":
+                p = i["params"]
+                box.attach(tmp, p["left"], p["top"], p["width"], p["height"])
+            elif a == "attach_next_to":
+                p = i["params"]
+                box.attach_next_to(tmp, tmpstrg[p["neighbor_key"]], Static.str2positiontype(p["position_type"]),
+                                   p["width"], p["height"])
         log.debug("everything went well")
         return box
 

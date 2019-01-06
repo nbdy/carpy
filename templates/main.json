@@ -2,35 +2,41 @@
   "dependencies": ["gps", "network"],
 
   "items": {
-    "hbox1": {
-      "class": "box",
-      "spacing": 8,
-      "homogeneous": false,
-      "orientation": "h",
-      "action": "pack_start",
+    "grid": {
+      "class": "grid",
+      "action": "add",
       "items": {
-        "vbox1": {
-          "class": "box",
-          "spacing": 8,
-          "homogeneous": false,
-          "orientation": "v",
-          "action": "pack_start",
-          "items": {
-            "lbl_wifi_overview": {
-              "class": "label",
-              "text": "wifi overview:",
-              "color": "#ffffff",
-              "action": "pack_start"
-            }
+        "lbl_wifi_overview": {
+          "class": "label",
+          "text": "wifi overview:",
+          "color": "#ffffff",
+          "action": "add"
+        },
+
+        "lbl_wifi_status": {
+          "class": "label",
+          "text": "status:",
+          "color": "#ffffff",
+          "action": "attach_next_to",
+          "params": {
+            "neighbor_key": "lbl_wifi_overview",
+            "position_type": "bottom",
+            "width": 1,
+            "height": 1
           }
         },
-        "vbox2": {
-          "class": "box",
-          "spacing": 8,
-          "homogeneous": false,
-          "orientation": "v",
-          "action": "pack_start",
-          "items": {}
+
+        "lbl_wifi_status_value": {
+          "class": "label",
+          "text": "{{ ctx.network.wifi_status() }}",
+          "color": "#ffffff",
+          "action": "attach_next_to",
+          "params": {
+            "neighbor_key": "lbl_wifi_status",
+            "position_type": "right",
+            "width": 1,
+            "height": 1
+          }
         }
       }
     }
