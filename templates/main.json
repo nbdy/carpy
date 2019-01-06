@@ -281,6 +281,21 @@
         "width": 1,
         "height": 1
       }
+    },
+    "btn_main_menu": {
+      "id": 23,
+      "class": "button",
+      "text": "main menu",
+      "color": "#ffffff",
+      "action": "attach_next_to",
+      "params": {
+        "neighbor_key": "lbl_gps_precision",
+        "position_type": "b",
+        "width": 2,
+        "height": 1
+      },
+      "action_key": 0,
+      "ui-template": "main_menu.json"
     }
   }
 }

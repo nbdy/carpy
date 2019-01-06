@@ -363,14 +363,16 @@ class UI(Gtk.Window):
     box = None
     grid = None
     gtkt = None
+    callback = None
 
     @staticmethod
     def build_box(orientation=Gtk.Orientation.VERTICAL, spacing=8, homogeneous=True):
         return Gtk.Box(orientation=orientation, spacing=spacing, homogeneous=homogeneous)
 
-    def __init__(self):
+    def __init__(self, callback):
         Gtk.Window.__init__(self)
         log.debug("initializing ui")
+        self.callback = callback
         self.fullscreen()
         self.box = self.build_box()
         self.connect("destroy", Gtk.main_quit)
@@ -383,13 +385,18 @@ class UI(Gtk.Window):
         self.gtkt.start()
         log.debug("initialized wifi")
 
-    @staticmethod
-    def class2widget(item):
+    def class2widget(self, item):
         cls = item["class"]
         if cls == "label":
             lbl = Gtk.Label(item["text"])
             lbl.set_markup("<span foreground=\"" + item["color"] + "\">")
             return lbl
+        elif cls == "button":
+            def cb():
+                self.callback(UI.Actions.UI.RELOAD, item["ui-template"])
+            btn = Gtk.Button.new_with_label(item["text"])
+            btn.connect("clicked", cb)
+            return btn
         elif cls == "box":
             box = Gtk.Box(spacing=item["spacing"], homogeneous=item["homogeneous"],
                           orientation=Static.str2orientation(item["orientation"]))
@@ -411,12 +418,11 @@ class UI(Gtk.Window):
             lst.append(i)
         return sorted(lst, key=lambda k: k["id"])
 
-    @staticmethod
-    def add2grid(box, items):
+    def add2grid(self, box, items):
         tmpstrg = {}
         items = UI.sort_items(items)
         for i in items:
-            tmpstrg[i["key"]] = UI.class2widget(i)
+            tmpstrg[i["key"]] = self.class2widget(i)
             a = i["action"].lower()
             if a == "pack_start":
                 box.pack_start(tmpstrg[i["key"]], True, True, 0)
@@ -432,16 +438,6 @@ class UI(Gtk.Window):
                 box.attach_next_to(tmpstrg[i["key"]], tmpstrg[p["neighbor_key"]],
                                    Static.str2positiontype(p["position_type"]),
                                    p["width"], p["height"])
-
-    @staticmethod
-    def add_to_box(box, items):
-        tmpstrg = {}
-        for key in items.keys():
-            i = items[key]
-            log.debug("adding " + i["class"] + ": " + key)
-            tmpstrg[key] = UI.class2widget(i)
-        log.debug("everything went well")
-        return box
 
     def load_template(self, name, ctx):
         self.current_template = name
@@ -492,7 +488,7 @@ class Main(Thread):
         self.network = Network()
         self.gps = GPS(self._gps_cb)
         self.wifi = WiFi(self._wifi_cb)
-        self.ui = UI()  # UI(self._ui_cb)
+        self.ui = UI(self._ui_cb)
 
     def __deps2ctx(self, deps):
         log.debug(deps)
@@ -504,11 +500,14 @@ class Main(Thread):
                 log.error(dep + " has not been implemented")
         return ctx
 
+    def __get_ctx(self, fn):
+        return self.__deps2ctx(loads(UI.Templates.build_path(fn))["dependencies"])
+
     def _ui_cb(self, action, **kwargs):
         # UI
         if action == UI.Actions.UI.RELOAD:
-            self.ui.load_template(kwargs.get(UI.Actions.UI.TEMPLATE,
-                                             self.__deps2ctx(kwargs.get(UI.Actions.UI.DEPENDENCIES))))
+            fn = kwargs.get(UI.Actions.UI.TEMPLATE)
+            self.ui.load_template(fn, self.__get_ctx(fn))
         # PLAYER
         if action == UI.Actions.Audio.PLAY:
             self.player.play(kwargs.get(UI.Actions.EXTRA_DATA))
