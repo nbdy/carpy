@@ -294,7 +294,7 @@
         "width": 2,
         "height": 1
       },
-      "action_key": 0,
+      "ui": "reload",
       "template": "main_menu.json"
     }
   }

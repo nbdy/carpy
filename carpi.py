@@ -333,7 +333,7 @@ class AuxOut(Player):
 class UI(Gtk.Window):
     class Actions(object):
         EXTRA_DATA = "data"
-        RELOAD = 0
+        RELOAD = "reload"
 
         class Audio(object):
             PLAY = 0
@@ -391,7 +391,7 @@ class UI(Gtk.Window):
         elif cls == "button":
             def cb():
                 log.debug(item["key"] + " button clicked")
-                self.callback(UI.Action.RELOAD, item["ui-template"])
+                self.callback(UI.Action.RELOAD, item["template"])
             btn = Gtk.Button.new_with_label(item["text"])
             btn.connect("clicked", cb)
             return btn
@@ -468,10 +468,9 @@ class Main(Thread):
         log.debug("starting wifi")
         self.wifi.start()
         log.debug("displaying main.json")
-        self.ui.load_template("main.json", self.__deps2ctx(
-            loads(open(RUNNING_PATH + "templates/main.json").read())["dependencies"]))
+        self._ui_cb(UI.Actions.RELOAD, template="main.json")
         while self.do_run:
-            self._ui_cb(UI.Actions.RELOAD, template="main.json")
+
             log.debug("sleeping for 2 seconds")
             sleep(2)
 
@@ -484,6 +483,7 @@ class Main(Thread):
         Thread.__init__(self)
         log.debug("initializing")
         self.audio_lib = AudioLibrary()
+        self.player = AuxOut(self.audio_lib)
         self.network = Network()
         self.gps = GPS(self._gps_cb)
         self.wifi = WiFi(self._wifi_cb)
@@ -500,7 +500,7 @@ class Main(Thread):
         return ctx
 
     def __get_ctx(self, fn):
-        return self.__deps2ctx(loads(UI.Templates.build_path(fn))["dependencies"])
+        return self.__deps2ctx(loads(open(UI.Templates.build_path(fn)).read())["dependencies"])
 
     def _ui_cb(self, action, **kwargs):
         # UI
@@ -526,10 +526,10 @@ class Main(Thread):
             self.player = AuxOut(self.audio_lib)
 
     def _gps_cb(self, data):
-        pass  # todo update position
+        self._ui_cb(UI.Actions.RELOAD, template="main.json")
 
-    def _wifi_cb(self, data):
-        pass  # todo check what has been found and inform ui
+    def _wifi_cb(self, data):  # todo process data
+        self._ui_cb(UI.Actions.RELOAD, template="main.json")
 
 
 if __name__ == '__main__':
