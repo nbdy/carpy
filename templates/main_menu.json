@@ -9,7 +9,7 @@
       "color": "#ffffff",
       "action": "add",
       "action_key": 0,
-      "ui-template": "main.json"
+      "template": "main.json"
     },
 
     "btn_audio": {
@@ -25,7 +25,7 @@
         "height": 1
       },
       "action_key": 0,
-      "ui-template": "audio.json"
+      "template": "audio.json"
     },
 
     "btn_wifi": {
@@ -41,7 +41,7 @@
         "height": 1
       },
       "action_key": 0,
-      "ui-template": "wifi.json"
+      "template": "wifi.json"
     }
   }
 }
