@@ -3,7 +3,7 @@
 ### why?
 my ford fiesta ja8 has a slot under the radio, which isn't used and i broke the cover.<br>
 i also wanted an programmable device in my car.<br>
-since most android radios need a 2 din slot, the "slot" i want to use is just 130x30mm.<br>
+almost nothing on the market fits a 130x30mm slot.<br>
 a linux system with touch and custom ui seemed like the best solution.<br>
 
 ### hardware:
