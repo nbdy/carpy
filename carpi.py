@@ -4,7 +4,7 @@ from gps import gps, WATCH_ENABLE
 from loguru import logger as log
 import netifaces
 from os.path import abspath, dirname, isfile, isdir
-from os import listdir
+from os import listdir, geteuid
 from scapy.all import sniff
 from scapy.layers.dot11 import Dot11, Dot11Beacon
 from subprocess import Popen, PIPE, check_output
@@ -13,11 +13,9 @@ from jinja2 import Template
 import sounddevice as sd
 import soundfile as sf
 from subprocess import check_output, CalledProcessError
-import kivy
-kivy.require('1.0.6')
-from kivy.app import App
-from kivy.uix.label import Label
-from kivy.core.window import Window
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
 
 RUNNING_PATH = dirname(abspath(__file__)) + "/"
 
@@ -113,6 +111,7 @@ class GPS(Thread):
         log.debug("registering callback")
         self.callback = callback
         self.do_run = True
+        log.debug("initialized gps")
 
     def run(self):
         log.debug("running")
@@ -137,11 +136,19 @@ class WiFi(Thread):
     iface = None
     callback = None
 
-    def __init__(self, callback, iface="wlan0mon"):
+    def __init__(self, callback, iface=Network.get_network_interface("wl")):
         Thread.__init__(self)
+        log.debug("initializing wifi")
         self.callback = callback
         self.do_run = True
         self.iface = iface
+        log.debug("initialized wifi")
+        if not Static.is_root():
+            log.warning("not root, disabling wifi")
+            self.do_run = False
+        if self.iface is None:
+            log.warning("no interface, disabling wifi")
+            self.do_run = False
 
     def _scapy_cb(self, pkt):
         if pkt.haslayer(Dot11):
@@ -151,25 +158,32 @@ class WiFi(Thread):
         return not self.do_run
 
     def run(self):
-        sniff(iface=self.iface, lfilter=self._scapy_cb, stop_filter=self._scapy_stop_filter)
+        if self.do_run:
+            sniff(iface=self.iface, lfilter=self._scapy_cb, stop_filter=self._scapy_stop_filter)
 
     def stop(self):
         self.do_run = False
 
 
 class Static(object):
-    POSITION_TYPES = {
-        "bottom": PositionType.BOTTOM,
-        "right": PositionType.RIGHT,
-        "left": PositionType.LEFT,
-        "top": PositionType.TOP
-    }
+    @staticmethod
+    def str2orientation(data):
+        if data.lower() in ["v", "vertical"]:
+            return Gtk.Orientation.VERTICAL
+        elif data.lower() in ["h", "horizontal"]:
+            return Gtk.Orientation.HORIZONTAL
+        else:
+            return Gtk.Orientation.HORIZONTAL
 
     @staticmethod
     def append_slash(data):
         if not data.endswith("/"):
             data += "/"
         return data
+
+    @staticmethod
+    def is_root():
+        return geteuid() == 0
 
 
 # todo: support nested albums
@@ -196,8 +210,10 @@ class AudioLibrary(object):
         return albums
 
     def __init__(self, directory="~/Music/"):
+        log.debug("initializing with audio directory '" + directory + "'")
         directory = Static.append_slash(directory)
         self.directory = directory
+        log.debug("initialized")
 
     def get_albums(self):
         return self.get_albums_in_dir(self.directory)
@@ -286,7 +302,7 @@ class AuxOut(Player):
         sd.stop()
 
 
-class UI(object):
+class UI(Gtk.Window):
     class Actions(object):
         EXTRA_DATA = "data"
 
@@ -313,72 +329,78 @@ class UI(object):
         def build_path(fn):
             return RUNNING_PATH + UI.Templates.FOLDER + fn
 
-    class Display(App):
-        def build(self):
-            pass
-
-    dspl = None
-
     current_template = None
     width = 480
     height = 320
     box = None
-
-    def __init__(self):
-        Window.size = (480, 320)
-        Window.fullscreen = True
-        self.dspl = UI.Display()
+    gtkt = None
 
     @staticmethod
-    def _add_to_grid(box, item):
-        tmp = None
-        c = item["class"].lower()
-        if c == "text":
-            tmp = Label(item["text"])
-            tmp.set_markup("<span foreground=\"" + item["color"] + "\">")
-        elif c == "button":
-            pass  # todo
+    def build_box(orientation=Gtk.Orientation.VERTICAL, spacing=8, homogeneous=True):
+        return Gtk.Box(orientation=orientation, spacing=spacing, homogeneous=homogeneous)
 
-        if tmp is None:
-            return False
+    def __init__(self):
+        Gtk.Window.__init__(self)
+        log.debug("initializing ui")
+        self.fullscreen()
+        self.box = self.build_box()
+        self.connect("destroy", Gtk.main_quit)
+        self.show_all()
+        log.debug("running gtk main loop")
 
-        tmp.show()
+        def gtk_main_loop():
+            Gtk.main()
+        self.gtkt = Thread(target=gtk_main_loop, daemon=True)
+        self.gtkt.start()
+        log.debug("initialized wifi")
 
-        a = item["action"].lower()
-        if a == "add":
-            box.add(tmp)
-        elif a == "attach":
-            box.attach()  # todo
-        elif a == "attach_next_to":
-            box.attach_next_to()  # todo
+    def refresh(self, f, **kwargs):
+        log.debug("refreshing; removing box")
+        self.remove(self.box)
+        log.debug("calling function with kwargs")
+        f(box=kwargs.get("box"), items=kwargs.get("items"))
+        log.debug("adding box back to window")
+        self.add(self.box)
+        log.debug("showing what we got")
+        self.show_all()
 
-        return True
+    @staticmethod
+    def _add_to_box(box, items):
+        log.debug("adding to box")
+        for key in items.keys():
+            tmp = None
+            i = items[key]
+            c = i["class"].lower()
+            log.debug("adding " + i["class"] + ": " + key)
+            if c == "label":
+                tmp = Gtk.Label(i["text"])
+                tmp.set_markup("<span foreground=\"" + i["color"] + "\">")
+            elif c == "box":
+                tmp = Gtk.Box(spacing=i["spacing"], homogeneous=i["homogeneous"],
+                              orientation=Static.str2orientation(i["orientation"]))
+                if len(i["items"]) > 0:
+                    box = UI._add_to_box(box, i["items"])
+
+            if tmp is None:
+                log.error(i)
+                return False
+            else:
+                log.debug("pack_start/end")
+
+            a = i["action"].lower()
+            if a == "pack_start":
+                box.pack_start(tmp, True, True, 0)
+            elif a == "pack_end":
+                box.pack_end(tmp, True, True, 0)  # todo
+        log.debug("everything went well")
+        return box
 
     def load_template(self, name, ctx):
-        self.remove(self.box)
-        self.box = Box()
-        self.add(self.box)
-        log.debug(ctx)
         self.current_template = name
         with open(UI.Templates.build_path(name)) as data:
             tpl = Template(data.read())
         json = loads(tpl.render(ctx=ctx))
-        items = json["items"]
-        log.debug(items)
-        for key in items.keys():
-            log.debug("adding " + items[key]["class"] + ": " + key)
-            self._add_to_grid(self.box, items[key])
-        self.box.show_all()
-
-    def test(self):
-        self.remove(self.box)
-        self.box = Box(spacing=8)
-        lbl = Label("aylkajhnfkjansdlf")
-        lbl.show()
-        self.box.pack_start(lbl, True, True, 0)
-        self.add(self.box)
-        self.box.show_all()
-        self.show_all()
+        self.refresh(self._add_to_box, box=self.box, items=json["items"])
 
 
 '''
@@ -401,7 +423,7 @@ class UI(object):
 '''
 
 
-class Main(object):
+class Main(Thread):
     ui = None
     gps = None
     wifi = None
@@ -409,26 +431,34 @@ class Main(object):
 
     audio_lib = None
     player = None
-    gtk_main_thread = None
 
-    def start(self):
-        self.gps.run()
-        self.wifi.run()
+    do_run = True
+
+    def run(self):
+        log.debug("starting gps")
+        self.gps.start()
+        log.debug("starting wifi")
+        self.wifi.start()
+        log.debug("displaying main.json")
+        self.ui.load_template("main.json", self.__deps2ctx(
+            loads(open(RUNNING_PATH + "templates/main.json").read())["dependencies"]))
+        while self.do_run:
+            log.debug("sleeping for 2 seconds")
+            sleep(2)
+
+    def stop(self):
+        self.wifi.stop()
+        self.gps.stop()
+        self.do_run = False
 
     def __init__(self):
+        Thread.__init__(self)
         log.debug("initializing")
         self.audio_lib = AudioLibrary()
         self.network = Network()
         self.gps = GPS(self._gps_cb)
         self.wifi = WiFi(self._wifi_cb)
-        self.ui = UI(self._ui_cb)
-        self.ui.test()
-        #self.ui.load_template("main.json", self.__deps2ctx(
-        #    loads(open(RUNNING_PATH + "templates/main.json").read())["dependencies"]))
-        log.debug("instatiating gtk main thread")
-        self.gtk_main_thread = Thread(target=gtk_main)
-        log.debug("running gtk main thread")
-        self.gtk_main_thread.start()
+        self.ui = UI()  # UI(self._ui_cb)
 
     def __deps2ctx(self, deps):
         log.debug(deps)
@@ -438,7 +468,6 @@ class Main(object):
                 ctx[dep] = self.__dict__[dep]
             else:
                 log.error(dep + " has not been implemented")
-        log.debug(ctx)
         return ctx
 
     def _ui_cb(self, action, **kwargs):
@@ -471,4 +500,10 @@ class Main(object):
 
 if __name__ == '__main__':
     log.debug("going to run")
-    Main()
+    m = Main()
+    try:
+        m.start()
+        m.join()
+    except KeyboardInterrupt:
+        log.info("caught ctrl+c; stopping")
+        m.stop()

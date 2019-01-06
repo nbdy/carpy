@@ -2,49 +2,37 @@
   "dependencies": ["gps", "network"],
 
   "items": {
-    "lbl_wifi_overview": {
-      "class": "label",
-      "text": "wifi overview:",
-      "color": "#ffffff",
-      "action": "add"
-    },
-
-    "lbl_wifi_connected_status_value": {
-      "class": "label",
-      "text": "{{ ctx['network'].get_wifi_connected_string() }}",
-      "color": "white",
-      "action": "attach_next_to",
-      "position_type": ""
-    },
-
-    "lbl_wifi_essid_value": {
-      "class": "label",
-      "text": "{{ ctx['network'].get_connected_essid() }}",
-      "color": "white",
-      "action": "attach"
-    },
-
-    "lbl_wifi_ip_value": {
-      "class": "label",
-      "text": "{{ ctx['network'].get_wifi_connected_ip() }}",
-      "color": "white",
-      "grid": [12, 16]
-    },
-
-    "lbl_gps_overview": {
-      "class": "label",
-      "text": "gps overview:",
-      "color": "white",
-      "grid": [24, 4]
-    },
-
-    "lbl_gps_status_value": {
-      "class": "label",
-      "text": "{% if ctx['gps'].current_position %}location found{% else %}no signal{% endif %}",
-      "color": "white",
-      "grid": [28, 16],
-      "function": "ctx"
+    "hbox1": {
+      "class": "box",
+      "spacing": 8,
+      "homogeneous": false,
+      "orientation": "h",
+      "action": "pack_start",
+      "items": {
+        "vbox1": {
+          "class": "box",
+          "spacing": 8,
+          "homogeneous": false,
+          "orientation": "v",
+          "action": "pack_start",
+          "items": {
+            "lbl_wifi_overview": {
+              "class": "label",
+              "text": "wifi overview:",
+              "color": "#ffffff",
+              "action": "pack_start"
+            }
+          }
+        },
+        "vbox2": {
+          "class": "box",
+          "spacing": 8,
+          "homogeneous": false,
+          "orientation": "v",
+          "action": "pack_start",
+          "items": {}
+        }
+      }
     }
   }
-
 }
