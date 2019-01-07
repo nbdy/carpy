@@ -362,28 +362,33 @@ class UI(Gtk.Window):
     gtkt = None
     callback = None
 
-    ui_switch_btn_manufacturer = None
+    get_ctx = None
 
     @staticmethod
     def build_box(orientation=Gtk.Orientation.VERTICAL, spacing=8, homogeneous=True):
         return Gtk.Box(orientation=orientation, spacing=spacing, homogeneous=homogeneous)
 
-    def __init__(self, ui_switch_btn_manufacturer, callback):
+    def __init__(self, get_ctx):
         Gtk.Window.__init__(self)
         log.debug("initializing ui")
-        self.callback = callback
-        self.ui_switch_btn_manufacturer = ui_switch_btn_manufacturer
+        self.get_ctx = get_ctx
         self.fullscreen()
         self.box = self.build_box()
         self.grid = Gtk.Grid()
         self.add(self.box)
         self.connect("destroy", Gtk.main_quit)
         self.show_all()
-        #log.debug("running gtk main loop")
-        #def gtk_main_loop():
-         #   Gtk.main()
-        #self.gtkt = Thread(target=gtk_main_loop, daemon=True)
-        #self.gtkt.start()
+
+    def ui_switch_btn_clicked(self, tpl):
+        self.load_template(tpl, self.get_ctx(tpl))
+
+    def ui_switch_btn_manufacturer(self, lbl, tpl):
+        def cb(btn):
+            log.debug("ui button switch has been clicked '" + lbl + "'")
+            self.ui_switch_btn_clicked(tpl)
+        btn = Gtk.Button.new_with_label(lbl)
+        btn.connect("clicked", cb)
+        return btn
 
     def class2widget(self, item):
         cls = item["class"]
@@ -392,7 +397,6 @@ class UI(Gtk.Window):
             lbl.set_markup("<span foreground=\"" + item["color"] + "\">")
             return lbl
         elif cls == "button":
-            log.debug(cls)
             if item["backend_action"] == "reload":
                 return self.ui_switch_btn_manufacturer(item["text"], item["template"])
         elif cls == "box":
@@ -460,24 +464,13 @@ class Main(Thread):
 
     do_run = True
 
-    def ui_switch_btn_clicked(self, tpl):
-        self.ui.load_template(tpl, self.__get_ctx(tpl))
-
-    def ui_switch_btn_manufacturer(self, lbl, tpl):
-        def cb(btn):
-            log.debug("ui button switch has been clicked '" + lbl + "'")
-            self.ui_switch_btn_clicked(tpl)
-        btn = Gtk.Button.new_with_label(lbl)
-        btn.connect("clicked", cb)
-        return btn
-
     def run(self):
         log.debug("starting gps")
         self.gps.start()
         log.debug("starting wifi")
         self.wifi.start()
         log.debug("displaying main.json")
-        self.ui_switch_btn_clicked("main.json")
+        self.ui.load_template("main.json", self.__get_ctx("main.json"))
         while self.do_run:
             while Gtk.events_pending():
                 Gtk.main_iteration()
@@ -496,7 +489,7 @@ class Main(Thread):
         self.network = Network()
         self.gps = GPS(self._gps_cb)
         self.wifi = WiFi(self._wifi_cb)
-        self.ui = UI(self.ui_switch_btn_manufacturer, self._ui_cb)
+        self.ui = UI(self.__get_ctx)
 
     def __deps2ctx(self, deps):
         log.debug(deps)

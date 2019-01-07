@@ -9,7 +9,7 @@
       "color": "#ffffff",
       "action": "add",
       "backend_action": "reload",
-      "template": "main_menu.json"
+      "template": "audio.json"
     }
   }
 }
