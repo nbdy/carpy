@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
-sudo apt install python3 python3-dev python3-pip gpsd gpsd-clients libjpeg-dev libtiff-dev libfreetype-dev -y
+sudo apt install python3 python3-dev python3-pip gpsd gpsd-clients libjpeg-dev libtiff-dev xserver-xorg-input-evdev -y
 sudo pip3 install -r requirements.txt
+sudo cp stl/final/99-calibration.conf /usr/share/X11/xorg.conf.d/
+echo "display_rotate=1" | sudo tee -a /boot/config.txt
 cd /opt/
 git clone https://github.com/ChristopheJacquet/PiFmRds
 cd PiFmRds/src/

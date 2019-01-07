@@ -66,8 +66,10 @@ class Setup(object):
         while i < len(arguments):
             a = arguments[i]
             if a in ["-i", "--install"]:
+                should_not_be_root()
                 Setup.install_autostart()
             elif a in ["-u", "--uninstall"]:
+                should_not_be_root()
                 Setup.uninstall_autostart()
             else:
                 Setup.help()
@@ -87,4 +89,5 @@ def should_be_root():
 
 
 if __name__ == '__main__':
+
     Setup.parse_arguments(argv)
