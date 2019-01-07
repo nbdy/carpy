@@ -23,7 +23,7 @@ todo:
 - wardriving
 - ...
 
-### installation (autostart):
+### install (autostart):
 ```
 sudo ./dependencies.sh
 sudo python3 install.py -i
@@ -35,8 +35,16 @@ sudo python3 install.py -u
 ```
 
 ### faq:
-Q: after assembly and installation the touchscreen input axis are incorrect<br>
-A: sudo cp stl/{{version}}/99-calibration.conf /usr/share/X11/xorg.conf.d/<br>
+Q: which stl's should i print?<br>
+A: use the folder 'stl/final/'; that's my current setup <br>
+<br>
+Q: why do keep the folders 'stl/v*'?<br>
+A: so i can look back on how bad i was at cad<br> 
+<br>
+Q: why is there a 99-calibration.conf in 'stl/v1/'?<br>
+A: the first version had the screen be horizontal.<br>
+turning the screen did't turn the input axis of the touchscreen<br>
+copying that file to /usr/share/etc/X11/xorg.conf.d/ would fix this issue<br>
 <br>
 Q: how do i adjust the ui to my needs?
 A: check the 'templates/' folder. it includes the stuff that makes up the ui.
