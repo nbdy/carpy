@@ -294,7 +294,7 @@
         "width": 2,
         "height": 1
       },
-      "ui": "reload",
+      "backend_action": "reload",
       "template": "main_menu.json"
     }
   }

@@ -7,7 +7,7 @@ from os.path import abspath, dirname, isfile, isdir
 from os import listdir, geteuid
 from scapy.all import sniff
 from scapy.layers.dot11 import Dot11, Dot11Beacon
-from subprocess import Popen, PIPE, check_output
+from subprocess import Popen, PIPE, check_output, STDOUT
 from json import loads
 from jinja2 import Template
 import sounddevice as sd
@@ -63,9 +63,9 @@ class Network(object):
     @staticmethod
     def wifi_essid():
         try:
-            o = str(check_output(["iwgetid", "-r"]))
+            o = str(check_output(["iwgetid", "-r"], stderr=STDOUT))
         except CalledProcessError:
-            log.exception("iwgetid exception")
+            log.warning("iwgetid exception; wifi does not seem to be available")
             return ""
         if "ESSID" not in o:
             return ""
@@ -348,7 +348,7 @@ class UI(Gtk.Window):
     class Templates(object):
         FOLDER = "templates/"
         ENTRY = "main.json"
-        UI_EXTRA = "ui-template"
+        UI_EXTRA = "template"
 
         @staticmethod
         def build_path(fn):
@@ -362,25 +362,28 @@ class UI(Gtk.Window):
     gtkt = None
     callback = None
 
+    ui_switch_btn_manufacturer = None
+
     @staticmethod
     def build_box(orientation=Gtk.Orientation.VERTICAL, spacing=8, homogeneous=True):
         return Gtk.Box(orientation=orientation, spacing=spacing, homogeneous=homogeneous)
 
-    def __init__(self, callback):
+    def __init__(self, ui_switch_btn_manufacturer, callback):
         Gtk.Window.__init__(self)
         log.debug("initializing ui")
         self.callback = callback
+        self.ui_switch_btn_manufacturer = ui_switch_btn_manufacturer
         self.fullscreen()
         self.box = self.build_box()
+        self.grid = Gtk.Grid()
+        self.add(self.box)
         self.connect("destroy", Gtk.main_quit)
         self.show_all()
-        log.debug("running gtk main loop")
-
-        def gtk_main_loop():
-            Gtk.main()
-        self.gtkt = Thread(target=gtk_main_loop, daemon=True)
-        self.gtkt.start()
-        log.debug("initialized wifi")
+        #log.debug("running gtk main loop")
+        #def gtk_main_loop():
+         #   Gtk.main()
+        #self.gtkt = Thread(target=gtk_main_loop, daemon=True)
+        #self.gtkt.start()
 
     def class2widget(self, item):
         cls = item["class"]
@@ -389,12 +392,9 @@ class UI(Gtk.Window):
             lbl.set_markup("<span foreground=\"" + item["color"] + "\">")
             return lbl
         elif cls == "button":
-            def cb():
-                log.debug(item["key"] + " button clicked")
-                self.callback(UI.Action.RELOAD, item["template"])
-            btn = Gtk.Button.new_with_label(item["text"])
-            btn.connect("clicked", cb)
-            return btn
+            log.debug(cls)
+            if item["backend_action"] == "reload":
+                return self.ui_switch_btn_manufacturer(item["text"], item["template"])
         elif cls == "box":
             box = Gtk.Box(spacing=item["spacing"], homogeneous=item["homogeneous"],
                           orientation=Static.str2orientation(item["orientation"]))
@@ -442,12 +442,10 @@ class UI(Gtk.Window):
         with open(UI.Templates.build_path(name)) as data:
             tpl = Template(data.read())
         json = loads(tpl.render(ctx=ctx))
-        self.remove(self.box)
+        self.box.remove(self.grid)
         self.grid = Gtk.Grid()
-        self.box = Gtk.Box()
         self.add2grid(self.grid, json["items"])
         self.box.add(self.grid)
-        self.add(self.box)
         self.show_all()
 
 
@@ -462,17 +460,28 @@ class Main(Thread):
 
     do_run = True
 
+    def ui_switch_btn_clicked(self, tpl):
+        self.ui.load_template(tpl, self.__get_ctx(tpl))
+
+    def ui_switch_btn_manufacturer(self, lbl, tpl):
+        def cb(btn):
+            log.debug("ui button switch has been clicked '" + lbl + "'")
+            self.ui_switch_btn_clicked(tpl)
+        btn = Gtk.Button.new_with_label(lbl)
+        btn.connect("clicked", cb)
+        return btn
+
     def run(self):
         log.debug("starting gps")
         self.gps.start()
         log.debug("starting wifi")
         self.wifi.start()
         log.debug("displaying main.json")
-        self._ui_cb(UI.Actions.RELOAD, template="main.json")
+        self.ui_switch_btn_clicked("main.json")
         while self.do_run:
-
-            log.debug("sleeping for 2 seconds")
-            sleep(2)
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+            sleep(0.2)
 
     def stop(self):
         self.wifi.stop()
@@ -487,7 +496,7 @@ class Main(Thread):
         self.network = Network()
         self.gps = GPS(self._gps_cb)
         self.wifi = WiFi(self._wifi_cb)
-        self.ui = UI(self._ui_cb)
+        self.ui = UI(self.ui_switch_btn_manufacturer, self._ui_cb)
 
     def __deps2ctx(self, deps):
         log.debug(deps)
@@ -506,9 +515,7 @@ class Main(Thread):
         # UI
         log.debug(action)
         log.debug(kwargs)
-        if action == UI.Actions.RELOAD:
-            fn = kwargs.get("template")
-            self.ui.load_template(fn, self.__get_ctx(fn))
+
         # PLAYER
         if action == UI.Actions.Audio.PLAY:
             self.player.play(kwargs.get(UI.Actions.EXTRA_DATA))
