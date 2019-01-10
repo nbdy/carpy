@@ -292,7 +292,7 @@
       "params": {
         "neighbor_key": "lbl_gps_precision_value",
         "position_type": "b",
-        "width": 3,
+        "width": 2,
         "height": 8
       },
       "backend_action": "reload",
