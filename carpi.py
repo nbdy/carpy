@@ -176,7 +176,7 @@ class WiFi(Thread):
     cfg = None
     callback = None
 
-    def __init__(self, callback, cfg):
+    def __init__(self, config, callback):
         Thread.__init__(self)
         log.debug("initializing wifi")
         self.callback = callback
@@ -486,7 +486,7 @@ class Configuration(object):
     wifi = None
 
     class WiFi(object):
-        dummy = None
+        interface = "wlan0mon"
 
     class GPS(object):
         sleep_time = 2
@@ -536,7 +536,7 @@ class Configuration(object):
         log.info("\t-ap\t--audio-library-path\t~/Music/")
         log.info("\t-pfmrds\t--player-fm-rds-path\t/opt/PiFmRds/src/pi_fm_rds")
         log.info("\t-gs\t--gps-sleep-time\t2")
-        log.info("\t")
+        log.info("\t-wi\t--wifi-interface\twlan0mon")
         exit()
 
     @staticmethod
