@@ -19,8 +19,8 @@
       "params": {
         "neighbor_key": "spacer0",
         "position_type": "b",
-        "width": 2,
-        "height": 1
+        "width": 4,
+        "height": 2
       },
       "backend_action": "reload",
       "template": "audio_aux.json"
@@ -35,8 +35,8 @@
       "params": {
         "neighbor_key": "btn_aux",
         "position_type": "b",
-        "width": 2,
-        "height": 1
+        "width": 4,
+        "height": 2
       },
       "backend_action": "reload",
       "template": "audio_fm.json"
@@ -47,12 +47,12 @@
       "class": "button",
       "text": "back",
       "color": "#ffffff",
-      "action": "add",
+      "action": "attach_next_to",
       "params": {
         "neighbor_key": "btn_fm",
         "position_type": "b",
-        "width": 2,
-        "height": 1
+        "width": 4,
+        "height": 2
       },
       "backend_action": "reload",
       "template": "main_menu.json"

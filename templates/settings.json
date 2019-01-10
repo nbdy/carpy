@@ -2,12 +2,26 @@
   "dependencies": [],
 
   "items": {
-    "back_btn": {
+    "spacer0": {
       "id": 1,
+      "class": "label",
+      "text": "",
+      "color": "#ffffff",
+      "action": "add"
+    },
+
+    "back_btn": {
+      "id": 2,
       "class": "button",
       "text": "back",
       "color": "#ffffff",
-      "action": "add",
+      "action": "attach_next_to",
+      "params": {
+        "neighbor_key": "spacer0",
+        "position_type": "b",
+        "width": 2,
+        "height": 1
+      },
       "backend_action": "reload",
       "template": "main_menu.json"
     }
