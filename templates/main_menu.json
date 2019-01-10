@@ -2,18 +2,46 @@
   "dependencies": [],
 
   "items": {
-    "btn_overview": {
+    "spacer0": {
       "id": 1,
+      "class": "label",
+      "text": "",
+      "color": "#ffffff",
+      "action": "add"
+    },
+
+    "btn_overview": {
+      "id": 2,
       "class": "button",
       "text": "overview",
       "color": "#ffffff",
-      "action": "add",
+      "action": "attach_next_to",
+      "params": {
+        "neighbor_key": "spacer0",
+        "position_type": "b",
+        "width": 8,
+        "height": 2
+      },
       "backend_action": "reload",
       "template": "main.json"
     },
 
+    "spacer1": {
+      "id": 3,
+      "class": "label",
+      "text": "",
+      "color": "#ffffff",
+      "action": "attach_next_to",
+      "params": {
+        "neighbor_key": "btn_overview",
+        "position_type": "b",
+        "width": 1,
+        "height": 1
+      }
+    },
+
     "btn_audio": {
-      "id": 2,
+      "id": 4,
       "class": "button",
       "text": "audio",
       "color": "#ffffff",
@@ -21,56 +49,98 @@
       "params": {
         "neighbor_key": "btn_overview",
         "position_type": "b",
-        "width": 2,
-        "height": 1
+        "width": 8,
+        "height": 2
       },
       "backend_action": "reload",
       "template": "audio.json"
     },
 
-    "btn_wifi": {
-      "id": 3,
-      "class": "button",
-      "text": "wifi",
+    "spacer2": {
+      "id": 4,
+      "class": "label",
+      "text": "",
       "color": "#ffffff",
       "action": "attach_next_to",
       "params": {
         "neighbor_key": "btn_audio",
         "position_type": "b",
-        "width": 2,
+        "width": 1,
         "height": 1
+      }
+    },
+
+    "btn_wifi": {
+      "id": 5,
+      "class": "button",
+      "text": "wifi",
+      "color": "#ffffff",
+      "action": "attach_next_to",
+      "params": {
+        "neighbor_key": "spacer2",
+        "position_type": "b",
+        "width": 8,
+        "height": 2
       },
       "backend_action": "reload",
       "template": "wifi.json"
     },
 
-    "btn_bluetooth": {
-      "id": 4,
-      "class": "button",
-      "text": "bluetooth",
+    "spacer3": {
+      "id": 6,
+      "class": "label",
+      "text": "",
       "color": "#ffffff",
       "action": "attach_next_to",
       "params": {
         "neighbor_key": "btn_wifi",
         "position_type": "b",
-        "width": 2,
+        "width": 1,
         "height": 1
+      }
+    },
+
+    "btn_bluetooth": {
+      "id": 7,
+      "class": "button",
+      "text": "bluetooth",
+      "color": "#ffffff",
+      "action": "attach_next_to",
+      "params": {
+        "neighbor_key": "spacer3",
+        "position_type": "b",
+        "width": 8,
+        "height": 2
       },
       "backend_action": "reload",
       "template": "bluetooth.json"
     },
 
-    "btn_settings": {
-      "id": 5,
-      "class": "button",
-      "text": "settings",
+    "spacer4": {
+      "id": 8,
+      "class": "label",
+      "text": "",
       "color": "#ffffff",
       "action": "attach_next_to",
       "params": {
         "neighbor_key": "btn_bluetooth",
         "position_type": "b",
-        "width": 2,
+        "width": 1,
         "height": 1
+      }
+    },
+
+    "btn_settings": {
+      "id": 9,
+      "class": "button",
+      "text": "settings",
+      "color": "#ffffff",
+      "action": "attach_next_to",
+      "params": {
+        "neighbor_key": "spacer4",
+        "position_type": "b",
+        "width": 8,
+        "height": 2
       },
       "backend_action": "reload",
       "template": "settings.json"
