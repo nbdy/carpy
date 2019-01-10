@@ -291,20 +291,6 @@
       "params": {
         "neighbor_key": "lbl_gps_precision",
         "position_type": "b",
-        "width": 2,
-        "height": 1
-      }
-    },
-
-    "spacer1": {
-      "id": 24,
-      "class": "label",
-      "text": " ",
-      "color": "#ffffff",
-      "action": "attach_next_to",
-      "params": {
-        "neighbor_key": "spacer0",
-        "position_type": "b",
         "width": 1,
         "height": 1
       }
@@ -317,9 +303,9 @@
       "color": "#ffffff",
       "action": "attach_next_to",
       "params": {
-        "neighbor_key": "spacer1",
+        "neighbor_key": "spacer0",
         "position_type": "r",
-        "width": 1,
+        "width": 2,
         "height": 5
       },
       "backend_action": "reload",
