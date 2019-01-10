@@ -46,5 +46,8 @@ A: the first version had the screen be horizontal.<br>
 turning the screen did't turn the input axis of the touchscreen<br>
 copying that file to /usr/share/etc/X11/xorg.conf.d/ would fix this issue<br>
 <br>
-Q: how do i adjust the ui to my needs?
+Q: the input axis are correct, but the screen is still horizontal?<br>
+A: add "display_rotate=1" to /boot/config.txt<br>
+<br>
+Q: how do i adjust the ui to my needs?<br>
 A: check the 'templates/' folder. it includes the stuff that makes up the ui.
