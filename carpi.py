@@ -12,6 +12,7 @@ from json import loads
 from jinja2 import Template
 import sounddevice as sd
 import soundfile as sf
+from sys import argv
 from subprocess import check_output, CalledProcessError
 import gi
 gi.require_version("Gtk", "3.0")
@@ -52,7 +53,12 @@ class Bluetooth(object):
         return dev
 
 
-class Network(object):
+class Network(Thread):
+    daemon = True
+    do_run = False
+
+    callback = None
+
     @staticmethod
     def get_network_interface(prefix):
         for iface in netifaces.interfaces():
@@ -94,6 +100,21 @@ class Network(object):
         if s is None:
             return ""
         return s[0]["addr"]
+
+    def __init__(self, callback):
+        Thread.__init__(self)
+        self.do_run = True
+        self.callback = callback
+
+    def _check(self):
+        return self.status("wl") is not None
+
+    def run(self):
+        while self.do_run:
+            s = self._check()
+            if s is not None:
+                self.callback(s)
+            sleep(2)
 
 
 class GPS(Thread):
@@ -237,7 +258,7 @@ class AudioLibrary(object):
                 albums.append(fp)
         return albums
 
-    def __init__(self, directory="~/Music/"):
+    def __init__(self, directory):
         log.debug("initializing with audio directory '" + directory + "'")
         directory = Static.append_slash(directory)
         self.directory = directory
@@ -453,6 +474,62 @@ class UI(Gtk.Window):
         self.show_all()
 
 
+class Configuration(object):
+    network = None
+    bluetooth = None
+    audio_library = None
+
+    class Network(object):
+        sleep_time = 2
+        prefix = "wl"  # prefix of network device which will be watched
+
+    class Bluetooth(object):
+        device = "/dev/hci0"
+        sleep_time = 2
+
+    class AudioLibrary(object):
+        path = "~/Music/"
+
+    def __init__(self):
+        self.network = Configuration.Network()
+        self.bluetooth = Configuration.Bluetooth()
+        self.audio_library = Configuration.AudioLibrary()
+
+    @staticmethod
+    def help():
+        log.info("usage: python3 carpi.py {arguments}")
+        log.info("{arguments}:")
+        log.info("\t\t\t--help")
+        log.info("\t-ns\t--network-sleep-time\t2")
+        log.info("\t-np\t--network-device-prefix\twl")
+        log.info("\t-bd\t--bluetooth-device\t/dev/hci0")
+        log.info("\t-bs\t--bluetooth-sleep-time\t2")
+        log.info("\t-ap\t--audio-library-path\t~/Music/")
+
+        exit()
+
+    @staticmethod
+    def parse_arguments(arguments):
+        conf = Configuration()
+        i = 0
+        while i < len(arguments):
+            a = arguments[i]
+            if a in ["--help"]:
+                Configuration.help()
+            elif a in ["-ns", "--network-sleep-time"]:
+                conf.network.sleep_time = int(arguments[i + 1])
+            elif a in ["-np", "--network-device-prefix"]:
+                conf.network.prefix = arguments[i + 1]
+            elif a in ["-bd", "--bluetooth-device"]:
+                conf.bluetooth.device = arguments[i + 1]
+            elif a in ["-bs", "--bluetooth-sleep-time"]:
+                conf.bluetooth.sleep_time = int(arguments[i + 1])
+            elif a in ["-ap", "--audio-library-path"]:
+                conf.audio_library.path = arguments[i + 1]
+            i += 1
+        return conf
+
+
 class Main(Thread):
     ui = None
     gps = None
@@ -486,7 +563,7 @@ class Main(Thread):
         log.debug("initializing")
         self.audio_lib = AudioLibrary()
         self.player = AuxOut(self.audio_lib)
-        self.network = Network()
+        self.network = Network(self._nw_cb)
         self.gps = GPS(self._gps_cb)
         self.wifi = WiFi(self._wifi_cb)
         self.ui = UI(self.__get_ctx)
@@ -528,12 +605,16 @@ class Main(Thread):
     def _gps_cb(self, data):
         self._ui_cb(UI.Actions.RELOAD, template="main.json")
 
+    def _nw_cb(self, data):
+        self._ui_cb(UI.Actions.RELOAD, template="main.json")
+
     def _wifi_cb(self, data):  # todo process data
         self._ui_cb(UI.Actions.RELOAD, template="main.json")
 
 
 if __name__ == '__main__':
     log.debug("going to run")
+    cfg = Configuration.parse_arguments(argv)
     m = Main()
     try:
         m.start()
