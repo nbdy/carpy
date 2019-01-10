@@ -290,7 +290,7 @@
       "color": "#ffffff",
       "action": "attach_next_to",
       "params": {
-        "neighbor_key": "lbl_gps_precision_value",
+        "neighbor_key": "lbl_gps_precision",
         "position_type": "b",
         "width": 2,
         "height": 8
