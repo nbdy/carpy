@@ -20,7 +20,7 @@
         "neighbor_key": "spacer0",
         "position_type": "b",
         "width": 2,
-        "height": 2
+        "height": 8
       },
       "backend_action": "reload",
       "template": "main.json"
@@ -50,7 +50,7 @@
         "neighbor_key": "spacer1",
         "position_type": "b",
         "width": 2,
-        "height": 2
+        "height": 8
       },
       "backend_action": "reload",
       "template": "audio.json"
@@ -80,7 +80,7 @@
         "neighbor_key": "spacer2",
         "position_type": "b",
         "width": 2,
-        "height": 2
+        "height": 8
       },
       "backend_action": "reload",
       "template": "wifi.json"
@@ -110,7 +110,7 @@
         "neighbor_key": "spacer3",
         "position_type": "b",
         "width": 2,
-        "height": 2
+        "height": 8
       },
       "backend_action": "reload",
       "template": "bluetooth.json"
@@ -140,7 +140,7 @@
         "neighbor_key": "spacer4",
         "position_type": "b",
         "width": 2,
-        "height": 2
+        "height": 8
       },
       "backend_action": "reload",
       "template": "settings.json"

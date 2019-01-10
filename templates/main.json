@@ -290,10 +290,10 @@
       "color": "#ffffff",
       "action": "attach_next_to",
       "params": {
-        "neighbor_key": "lbl_gps_precision",
+        "neighbor_key": "lbl_gps_precision_value",
         "position_type": "b",
         "width": 3,
-        "height": 5
+        "height": 8
       },
       "backend_action": "reload",
       "template": "main_menu.json"
