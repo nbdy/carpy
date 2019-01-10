@@ -304,7 +304,7 @@
       "params": {
         "neighbor_key": "lbl_spacer_0",
         "position_type": "b",
-        "width": 2,
+        "width": 3,
         "height": 1
       },
       "backend_action": "reload",

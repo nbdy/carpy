@@ -5,7 +5,7 @@
     "back_btn": {
       "id": 1,
       "class": "button",
-      "text": "aux",
+      "text": "back",
       "color": "#ffffff",
       "action": "add",
       "backend_action": "reload",
