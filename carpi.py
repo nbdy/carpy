@@ -237,6 +237,10 @@ class Static(object):
     def is_root():
         return geteuid() == 0
 
+    @staticmethod
+    def is_pi():
+        return isfile("/proc/device-tree/model")
+
 
 # todo: support nested albums
 class AudioLibrary(object):
@@ -396,11 +400,19 @@ class UI(Gtk.Window):
     def build_grid(column_homogeneous=True, col_spacing=8, row_spacing=8):
         return Gtk.Grid(column_homogeneous=column_homogeneous, column_spacing=col_spacing, row_spacing=row_spacing)
 
+    def set_resolution(self):
+        if Static.is_pi():
+            self.fullscreen()
+        else:
+            self.set_title("carpi")
+            self.resize(480, 320)
+            self.set_resizable(False)
+
     def __init__(self, get_ctx):
         Gtk.Window.__init__(self)
         log.debug("initializing ui")
         self.get_ctx = get_ctx
-        self.fullscreen()
+        self.set_resolution()
         self.box = self.build_box()
         self.grid = self.build_grid()
         self.add(self.box)

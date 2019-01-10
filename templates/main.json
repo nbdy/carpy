@@ -31,7 +31,7 @@
       "params": {
         "neighbor_key": "lbl_wifi_status",
         "position_type": "right",
-        "width": 1,
+        "width": 2,
         "height": 1
       }
     },
@@ -57,7 +57,7 @@
       "params": {
         "neighbor_key": "lbl_wifi_essid",
         "position_type": "r",
-        "width": 1,
+        "width": 2,
         "height": 1
       }
     },
@@ -174,7 +174,7 @@
       "params": {
         "neighbor_key": "lbl_gps_latitude",
         "position_type": "right",
-        "width": 3,
+        "width": 1,
         "height": 1
       }
     },
@@ -304,8 +304,8 @@
       "params": {
         "neighbor_key": "lbl_spacer_0",
         "position_type": "b",
-        "width": 2,
-        "height": 2
+        "width": 3,
+        "height": 3
       },
       "backend_action": "reload",
       "template": "main_menu.json"
