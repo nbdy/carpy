@@ -83,7 +83,7 @@
       "params": {
         "neighbor_key": "lbl_wifi_ip",
         "position_type": "right",
-        "width": 1,
+        "width": 2,
         "height": 1
       }
     },
@@ -122,7 +122,7 @@
       "params": {
         "neighbor_key": "lbl_gps_status",
         "position_type": "right",
-        "width": 1,
+        "width": 2,
         "height": 1
       }
     },
@@ -148,7 +148,7 @@
       "params": {
         "neighbor_key": "lbl_gps_longitude",
         "position_type": "right",
-        "width": 1,
+        "width": 2,
         "height": 1
       }
     },
@@ -174,7 +174,7 @@
       "params": {
         "neighbor_key": "lbl_gps_latitude",
         "position_type": "right",
-        "width": 1,
+        "width": 2,
         "height": 1
       }
     },
@@ -200,7 +200,7 @@
       "params": {
         "neighbor_key": "lbl_gps_altitude",
         "position_type": "right",
-        "width": 1,
+        "width": 2,
         "height": 1
       }
     },
@@ -226,7 +226,7 @@
       "params": {
         "neighbor_key": "lbl_gps_speed",
         "position_type": "right",
-        "width": 1,
+        "width": 2,
         "height": 1
       }
     },
@@ -252,7 +252,7 @@
       "params": {
         "neighbor_key": "lbl_gps_satellites_used",
         "position_type": "right",
-        "width": 1,
+        "width": 2,
         "height": 1
       }
     },
@@ -278,7 +278,7 @@
       "params": {
         "neighbor_key": "lbl_gps_precision",
         "position_type": "right",
-        "width": 1,
+        "width": 2,
         "height": 1
       }
     },
@@ -305,7 +305,7 @@
         "neighbor_key": "lbl_spacer_0",
         "position_type": "b",
         "width": 3,
-        "height": 3
+        "height": 5
       },
       "backend_action": "reload",
       "template": "main_menu.json"
