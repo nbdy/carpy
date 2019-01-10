@@ -181,7 +181,7 @@ class WiFi(Thread):
         log.debug("initializing wifi")
         self.callback = callback
         self.do_run = True
-        self.cfg = cfg
+        self.cfg = config
         log.debug("initialized wifi")
         if not Static.is_root():
             log.warning("not root, disabling wifi")
