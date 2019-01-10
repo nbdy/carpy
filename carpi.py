@@ -486,7 +486,7 @@ class Configuration(object):
     wifi = None
 
     class WiFi(object):
-        interface = "wlan0mon"
+        interface = None  # "wlan0mon"
 
     class GPS(object):
         sleep_time = 2
@@ -652,8 +652,7 @@ class Main(Thread):
 
 if __name__ == '__main__':
     log.debug("going to run")
-    cfg = Configuration.parse_arguments(argv)
-    m = Main(cfg)
+    m = Main(Configuration.parse_arguments(argv))
     try:
         m.start()
         m.join()
