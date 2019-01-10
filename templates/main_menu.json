@@ -47,7 +47,7 @@
       "color": "#ffffff",
       "action": "attach_next_to",
       "params": {
-        "neighbor_key": "btn_overview",
+        "neighbor_key": "spacer1",
         "position_type": "b",
         "width": 8,
         "height": 2

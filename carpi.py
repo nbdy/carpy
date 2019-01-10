@@ -392,13 +392,17 @@ class UI(Gtk.Window):
     def build_box(orientation=Gtk.Orientation.VERTICAL, spacing=8, homogeneous=True):
         return Gtk.Box(orientation=orientation, spacing=spacing, homogeneous=homogeneous)
 
+    @staticmethod
+    def build_grid(homogeneous=True, col_spacing=8, row_spacing=8):
+        return Gtk.Grid(homogeneous=homogeneous, column_spacing=col_spacing, row_spacing=row_spacing)
+
     def __init__(self, get_ctx):
         Gtk.Window.__init__(self)
         log.debug("initializing ui")
         self.get_ctx = get_ctx
         self.fullscreen()
         self.box = self.build_box()
-        self.grid = Gtk.Grid()
+        self.grid = self.build_grid()
         self.add(self.box)
         self.connect("destroy", Gtk.main_quit)
         self.show_all()
@@ -471,7 +475,7 @@ class UI(Gtk.Window):
             tpl = Template(data.read())
         json = loads(tpl.render(ctx=ctx))
         self.box.remove(self.grid)
-        self.grid = Gtk.Grid()
+        self.grid = self.build_grid()
         self.add2grid(self.grid, json["items"])
         self.box.add(self.grid)
         self.show_all()
