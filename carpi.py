@@ -57,6 +57,7 @@ class Network(Thread):
     daemon = True
     do_run = False
 
+    cfg = None
     callback = None
 
     @staticmethod
@@ -101,9 +102,10 @@ class Network(Thread):
             return ""
         return s[0]["addr"]
 
-    def __init__(self, callback):
+    def __init__(self, config, callback):
         Thread.__init__(self)
         self.do_run = True
+        self.cfg = config
         self.callback = callback
 
     def _check(self):
@@ -114,23 +116,24 @@ class Network(Thread):
             s = self._check()
             if s is not None:
                 self.callback(s)
-            sleep(2)
+            sleep(self.cfg.sleep_time)
 
 
 class GPS(Thread):
     daemon = True
     do_run = False
 
-    sleep_time = 2
+    cfg = None
     callback = None
 
     current_position = None
 
-    def __init__(self, callback):
+    def __init__(self, cfg, callback):
         log.debug("initializing gps")
         Thread.__init__(self)
         log.debug("registering callback")
         self.callback = callback
+        self.cfg = cfg
         self.do_run = True
         log.debug("initialized gps")
 
@@ -159,8 +162,8 @@ class GPS(Thread):
                 log.debug("position has changed; informing main.json")
                 self.parse_current_position(client)
                 self.callback(self.current_position)
-            log.debug("sleeping for " + str(self.sleep_time))
-            sleep(self.sleep_time)
+            log.debug("sleeping for " + str(self.cfg.sleep_time))
+            sleep(self.cfg.sleep_time)
 
     def stop(self):
         self.do_run = False
@@ -170,20 +173,20 @@ class WiFi(Thread):
     daemon = True
     do_run = False
 
-    iface = None
+    cfg = None
     callback = None
 
-    def __init__(self, callback, iface=Network.get_network_interface("wl")):
+    def __init__(self, callback, cfg):
         Thread.__init__(self)
         log.debug("initializing wifi")
         self.callback = callback
         self.do_run = True
-        self.iface = iface
+        self.cfg = cfg
         log.debug("initialized wifi")
         if not Static.is_root():
             log.warning("not root, disabling wifi")
             self.do_run = False
-        if self.iface is None:
+        if self.cfg.interface is None:
             log.warning("no interface, disabling wifi")
             self.do_run = False
 
@@ -196,7 +199,7 @@ class WiFi(Thread):
 
     def run(self):
         if self.do_run:
-            sniff(iface=self.iface, lfilter=self._scapy_cb, stop_filter=self._scapy_stop_filter)
+            sniff(iface=self.cfg.interface, lfilter=self._scapy_cb, stop_filter=self._scapy_stop_filter)
 
     def stop(self):
         self.do_run = False
@@ -237,9 +240,9 @@ class Static(object):
 
 # todo: support nested albums
 class AudioLibrary(object):
-    directory = None
     albums = []
     songs = []
+    cfg = None
 
     @staticmethod
     def get_songs_in_dir(directory):
@@ -258,14 +261,14 @@ class AudioLibrary(object):
                 albums.append(fp)
         return albums
 
-    def __init__(self, directory):
-        log.debug("initializing with audio directory '" + directory + "'")
-        directory = Static.append_slash(directory)
-        self.directory = directory
+    def __init__(self, cfg):
+        self.cfg = cfg
+        self.cfg.path = Static.append_slash(self.cfg.path)
+        log.debug("initializing with audio directory '" + self.cfg.path + "'")
         log.debug("initialized")
 
     def get_albums(self):
-        return self.get_albums_in_dir(self.directory)
+        return self.get_albums_in_dir(self.cfg.path)
 
     def get_all_songs(self):
         songs = []
@@ -280,12 +283,14 @@ class Player(Thread):
 
     queue = []
     current_song = None
+    cfg = None
 
     audio_lib = None
 
-    def __init__(self, audio_lib):
+    def __init__(self, cfg, audio_lib):
         Thread.__init__(self)
         self.audio_lib = audio_lib
+        self.cfg = cfg
 
     def play(self, fp):
         pass
@@ -307,23 +312,22 @@ class Player(Thread):
 
 
 class FMTransmitter(Player):
-    pi_fm_rds_path = "/opt/PiFmRds/src/pi_fm_rds"
     css = None
 
-    def __init__(self, audio_lib):
-        Player.__init__(self, audio_lib)
-        if not isfile(self.pi_fm_rds_path):
+    def __init__(self, config, audio_lib):
+        Player.__init__(self, config, audio_lib)
+        if not isfile(self.cfg.pi_fm_rds_path):
             raise Exception("/opt/PiFmRds/src/pi_fm_rds does not exist")
 
     def play(self, fp):
         if not isfile(fp):
             return False
         if fp.endswith(".mp3"):
-            self.css = Popen(["sox", "-t", fp, "-t", "wav", "-", "|", "./" + self.pi_fm_rds_path,
+            self.css = Popen(["sox", "-t", fp, "-t", "wav", "-", "|", "./" + self.cfg.pi_fm_rds_path,
                               "-audio", "-"], stdout=PIPE)
             return True
         elif fp.endswith(".wav"):
-            self.css = Popen(["./" + self.pi_fm_rds_path, "-audio", fp], stdout=PIPE)
+            self.css = Popen(["./" + self.cfg.pi_fm_rds_path, "-audio", fp], stdout=PIPE)
             return True
         else:
             log.error("not sure what '" + fp[-4:-1] + "'kind of file extension is")
@@ -331,9 +335,6 @@ class FMTransmitter(Player):
 
 
 class AuxOut(Player):
-    def __init__(self, audio_lib):
-        Player.__init__(self, audio_lib)
-
     def play(self, fp):
         self.current_song = fp
         data, fs = sf.read(fp, dtype='float32')
@@ -352,6 +353,8 @@ class AuxOut(Player):
 
 
 class UI(Gtk.Window):
+    cfg = None
+
     class Actions(object):
         EXTRA_DATA = "data"
         RELOAD = "reload"
@@ -478,6 +481,29 @@ class Configuration(object):
     network = None
     bluetooth = None
     audio_library = None
+    player = None
+    gps = None
+    wifi = None
+
+    class WiFi(object):
+        dummy = None
+
+    class GPS(object):
+        sleep_time = 2
+
+    class Player(object):
+        fm = None
+        aux = None
+
+        class Aux(object):
+            dummy = None
+
+        class FMTransmitter(object):
+            pi_fm_rds_path = "/opt/PiFmRds/src/pi_fm_rds"
+
+        def __init__(self):
+            self.fm = Configuration.Player.FMTransmitter()
+            self.aux = Configuration.Player.Aux()
 
     class Network(object):
         sleep_time = 2
@@ -494,6 +520,9 @@ class Configuration(object):
         self.network = Configuration.Network()
         self.bluetooth = Configuration.Bluetooth()
         self.audio_library = Configuration.AudioLibrary()
+        self.player = Configuration.Player()
+        self.gps = Configuration.GPS()
+        self.wifi = Configuration.WiFi()
 
     @staticmethod
     def help():
@@ -505,7 +534,9 @@ class Configuration(object):
         log.info("\t-bd\t--bluetooth-device\t/dev/hci0")
         log.info("\t-bs\t--bluetooth-sleep-time\t2")
         log.info("\t-ap\t--audio-library-path\t~/Music/")
-
+        log.info("\t-pfmrds\t--player-fm-rds-path\t/opt/PiFmRds/src/pi_fm_rds")
+        log.info("\t-gs\t--gps-sleep-time\t2")
+        log.info("\t")
         exit()
 
     @staticmethod
@@ -526,11 +557,17 @@ class Configuration(object):
                 conf.bluetooth.sleep_time = int(arguments[i + 1])
             elif a in ["-ap", "--audio-library-path"]:
                 conf.audio_library.path = arguments[i + 1]
+            elif a in ["-pfmrds", "--player-fm-rds-path"]:
+                conf.player.fm.pi_fm_rds_path = arguments[i + 1]
+            elif a in ["-gs", "--gps-sleep-time"]:
+                conf.gps.sleep_time = int(arguments[i + 1])
             i += 1
         return conf
 
 
 class Main(Thread):
+    cfg = None
+
     ui = None
     gps = None
     wifi = None
@@ -558,14 +595,15 @@ class Main(Thread):
         self.gps.stop()
         self.do_run = False
 
-    def __init__(self):
+    def __init__(self, config):
         Thread.__init__(self)
+        self.cfg = config
         log.debug("initializing")
-        self.audio_lib = AudioLibrary()
-        self.player = AuxOut(self.audio_lib)
-        self.network = Network(self._nw_cb)
-        self.gps = GPS(self._gps_cb)
-        self.wifi = WiFi(self._wifi_cb)
+        self.audio_lib = AudioLibrary(self.cfg.audio_library)
+        self.player = AuxOut(self.cfg.player.aux, self.audio_lib)
+        self.network = Network(self.cfg.network, self._nw_cb)
+        self.gps = GPS(self.cfg.gps, self._gps_cb)
+        self.wifi = WiFi(self.cfg.wifi, self._wifi_cb)
         self.ui = UI(self.__get_ctx)
 
     def __deps2ctx(self, deps):
@@ -598,9 +636,9 @@ class Main(Thread):
 
     def _ui_player_selected_cb(self, pid):
         if pid == UI.Actions.Player.FM:
-            self.player = FMTransmitter(self.audio_lib)
+            self.player = FMTransmitter(self.cfg.player.fm, self.audio_lib)
         elif pid == UI.Actions.Player.AUX:
-            self.player = AuxOut(self.audio_lib)
+            self.player = AuxOut(self.cfg.player.aux, self.audio_lib)
 
     def _gps_cb(self, data):
         self._ui_cb(UI.Actions.RELOAD, template="main.json")
@@ -615,7 +653,7 @@ class Main(Thread):
 if __name__ == '__main__':
     log.debug("going to run")
     cfg = Configuration.parse_arguments(argv)
-    m = Main()
+    m = Main(cfg)
     try:
         m.start()
         m.join()
