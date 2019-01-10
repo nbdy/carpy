@@ -305,7 +305,7 @@
         "neighbor_key": "lbl_spacer_0",
         "position_type": "b",
         "width": 6,
-        "height": 2
+        "height": 4
       },
       "backend_action": "reload",
       "template": "main_menu.json"
