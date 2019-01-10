@@ -57,7 +57,7 @@
     },
 
     "spacer2": {
-      "id": 4,
+      "id": 5,
       "class": "label",
       "text": "",
       "color": "#ffffff",
@@ -71,7 +71,7 @@
     },
 
     "btn_wifi": {
-      "id": 5,
+      "id": 6,
       "class": "button",
       "text": "wifi",
       "color": "#ffffff",
@@ -87,7 +87,7 @@
     },
 
     "spacer3": {
-      "id": 6,
+      "id": 7,
       "class": "label",
       "text": "",
       "color": "#ffffff",
@@ -101,7 +101,7 @@
     },
 
     "btn_bluetooth": {
-      "id": 7,
+      "id": 8,
       "class": "button",
       "text": "bluetooth",
       "color": "#ffffff",
@@ -117,7 +117,7 @@
     },
 
     "spacer4": {
-      "id": 8,
+      "id": 9,
       "class": "label",
       "text": "",
       "color": "#ffffff",
@@ -131,7 +131,7 @@
     },
 
     "btn_settings": {
-      "id": 9,
+      "id": 10,
       "class": "button",
       "text": "settings",
       "color": "#ffffff",
