@@ -282,6 +282,19 @@
         "height": 1
       }
     },
+    "lbl_spacer_0": {
+      "id": 23,
+      "class": "label",
+      "text": "",
+      "color": "#ffffff",
+      "action": "attach_next_to",
+      "params": {
+        "neighbor_key": "lbl_gps_precision",
+        "position_type": "b",
+        "width": 3,
+        "height": 1
+      }
+    },
     "btn_main_menu": {
       "id": 23,
       "class": "button",
@@ -289,10 +302,10 @@
       "color": "#ffffff",
       "action": "attach_next_to",
       "params": {
-        "neighbor_key": "lbl_gps_precision",
+        "neighbor_key": "lbl_spacer_0",
         "position_type": "b",
         "width": 6,
-        "height": 1
+        "height": 2
       },
       "backend_action": "reload",
       "template": "main_menu.json"
