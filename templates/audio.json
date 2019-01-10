@@ -2,18 +2,32 @@
   "dependencies": [],
 
   "items": {
-    "btn_aux": {
+    "spacer0": {
       "id": 1,
+      "class": "label",
+      "text": "",
+      "color": "#ffffff",
+      "action": "add"
+    },
+
+    "btn_aux": {
+      "id": 2,
       "class": "button",
       "text": "aux",
       "color": "#ffffff",
-      "action": "add",
+      "action": "attach_next_to",
+      "params": {
+        "neighbor_key": "spacer0",
+        "position_type": "b",
+        "width": 2,
+        "height": 1
+      },
       "backend_action": "reload",
       "template": "audio_aux.json"
     },
 
     "btn_fm": {
-      "id": 2,
+      "id": 3,
       "class": "button",
       "text": "fm",
       "color": "#ffffff",
@@ -29,7 +43,7 @@
     },
 
     "back_btn": {
-      "id": 3,
+      "id": 4,
       "class": "button",
       "text": "back",
       "color": "#ffffff",
@@ -37,7 +51,7 @@
       "params": {
         "neighbor_key": "btn_fm",
         "position_type": "b",
-        "width": 3,
+        "width": 2,
         "height": 1
       },
       "backend_action": "reload",
