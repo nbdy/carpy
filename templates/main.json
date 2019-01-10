@@ -296,7 +296,7 @@
       }
     },
     "btn_main_menu": {
-      "id": 23,
+      "id": 24,
       "class": "button",
       "text": "main menu",
       "color": "#ffffff",

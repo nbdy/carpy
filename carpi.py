@@ -393,8 +393,8 @@ class UI(Gtk.Window):
         return Gtk.Box(orientation=orientation, spacing=spacing, homogeneous=homogeneous)
 
     @staticmethod
-    def build_grid(homogeneous=True, col_spacing=8, row_spacing=8):
-        return Gtk.Grid(homogeneous=homogeneous, column_spacing=col_spacing, row_spacing=row_spacing)
+    def build_grid(column_homogeneous=True, col_spacing=8, row_spacing=8):
+        return Gtk.Grid(column_homogeneous=column_homogeneous, column_spacing=col_spacing, row_spacing=row_spacing)
 
     def __init__(self, get_ctx):
         Gtk.Window.__init__(self)
