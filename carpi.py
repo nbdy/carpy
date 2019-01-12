@@ -80,7 +80,7 @@ class Network(Thread):
     def get_available_interfaces():
         av_ifaces = []
         for iface in netifaces.interfaces():
-            for prefix in ['enp', 'wl', 'eth']:
+            for prefix in ['e', 'wl']:
                 if iface.startswith(prefix):
                     av_ifaces.append(iface)
         return av_ifaces
