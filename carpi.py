@@ -20,7 +20,11 @@ from kivy.properties import StringProperty
 
 RUNNING_PATH = dirname(abspath(__file__)) + "/"
 
-log.add(RUNNING_PATH + "output.log", enqueue=True, backtrace=True)
+log.add(RUNNING_PATH + "log/output.log", enqueue=True, backtrace=True)
+
+Config.set("kivy", "log_enable", 1)
+Config.set("kivy", "log_level", "debug")
+Config.set("kivy", "log_dir", RUNNING_PATH + "log/")
 
 # todo
 # labels for wifi
