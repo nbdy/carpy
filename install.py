@@ -1,6 +1,7 @@
 from os import getcwd, geteuid
 from sys import argv
 from loguru import logger as log
+from os import system
 
 
 class Setup(object):
@@ -52,11 +53,24 @@ class Setup(object):
         Setup._uninstall_autostart()
 
     @staticmethod
+    def install_dependencies():
+        system("sudo apt install python3 python3-dev python3-pip gpsd gpsd-clients libjpeg-dev libtiff-dev "
+               "xserver-xorg-input-evdev libsndfile-dev tcpdump -y")
+        system("sudo pip3 install -r requirements.txt")
+        system("sudo cp stl/final/99-calibration.conf /usr/share/X11/xorg.conf.d/")
+        with open("/boot/config.txt", "a") as o:
+            o.write("\ndisplay_rotate=1\n")
+        system("cd /opt ; git clone https://github.com/ChristopheJacquet/PiFmRds ; cd PiFmRds/src ; make clean ; make")
+        system("cd /tmp ; wget http://osoyoo.com/driver/LCD_show_35hdmi.tar.gz ; tar xf LCD_show_35hdmi.tar.gz ; "
+               "rm LCD_show_35hdmi.tar.gz ; cd LCD_show_35hdmi/ ; sudo ./LCD35_480\*320")
+
+    @staticmethod
     def help():
         log.info("usage: python3 carpi.py {arguments}")
         log.info("{arguments}:")
-        log.info("\t-i\t--install")
-        log.info("\t-u\t--uninstall")
+        log.info("\t-ia\t--install-autostart")
+        log.info("\t-ua\t--uninstall-autostart")
+        log.info("\t-id\t--install-dependencies")
         exit()
 
     @staticmethod
@@ -65,12 +79,15 @@ class Setup(object):
         log.info("parsing args")
         while i < len(arguments):
             a = arguments[i]
-            if a in ["-i", "--install"]:
+            if a in ["-ia", "--install-autostart"]:
                 should_not_be_root()
                 Setup.install_autostart()
-            elif a in ["-u", "--uninstall"]:
+            elif a in ["-ua", "--uninstall-autostart"]:
                 should_not_be_root()
                 Setup.uninstall_autostart()
+            elif a in ["-id", "--install-dependencies"]:
+                should_be_root()
+                Setup.install_dependencies()
             else:
                 Setup.help()
             i += 1

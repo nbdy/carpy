@@ -15,7 +15,8 @@ a linux system w/ custom ui/case seemed like the best solution.<br>
 
 ### features:
 done:
-- ui (easily extensible)
+- ui
+- install script
 
 todo:
 - map / navigation
@@ -23,15 +24,19 @@ todo:
 - wardriving
 - ...
 
+### install (dependencies):
+```
+sudo python3 install.py -id
+```
+
 ### install (autostart):
 ```
-sudo ./dependencies.sh
-sudo python3 install.py -i
+python3 install.py -ia
 ```
 
 ### uninstall (autostart):
 ```
-sudo python3 install.py -u
+python3 install.py -ua
 ```
 
 ### faq:
