@@ -4,7 +4,7 @@ from gps import gps, WATCH_ENABLE
 from loguru import logger as log
 import netifaces
 from os.path import abspath, dirname, isfile, isdir
-from os import listdir, geteuid, makedirs
+from os import listdir, geteuid, makedirs, environ
 from scapy.all import sniff
 from scapy.layers.dot11 import Dot11
 from subprocess import Popen, PIPE
@@ -16,7 +16,9 @@ from kivy.config import Config
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.properties import StringProperty
-from kivy.core.window import Window
+# from kivy.core.window import Window
+
+environ["SDL_FBDEV"] = "/dev/fb0"
 
 RUNNING_PATH = dirname(abspath(__file__)) + "/"
 
