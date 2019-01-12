@@ -435,8 +435,10 @@ if __name__ == '__main__':
 
     if Static.is_pi():
         log.debug("is pi, setting fullscreen")
-        # Config.set("graphics", "fullscreen", "auto")
-        Window.fullscreen = "auto"
+        Config.set("graphics", "fullscreen", True)
+        Config.set("graphics", "left", 0)
+        Config.set("graphics", "top", 0)
+        Config.set("graphics", "position", "custom")
     else:
         log.debug("is not pi, setting 320x480 resolution")
         Config.set("graphics", "height", 480)
