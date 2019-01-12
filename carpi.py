@@ -345,11 +345,35 @@ class Audio(Screen):
     pass
 
 
+class AudioAux(Screen):
+    pass
+
+
+class AudioFM(Screen):
+    pass
+
+
 class Wireless(Screen):
     pass
 
 
+class WirelessWiFi(Screen):
+    pass
+
+
+class WirelessBluetooth(Screen):
+    pass
+
+
 class Settings(Screen):
+    pass
+
+
+class SettingsAudio(Screen):
+    pass
+
+
+class SettingsWireless(Screen):
     pass
 
 
@@ -370,8 +394,14 @@ if __name__ == '__main__':
     sm.add_widget(Overview(name="overview"))
     sm.add_widget(MainMenu(name="main_menu"))
     sm.add_widget(Audio(name="audio"))
+    sm.add_widget(AudioAux(name="audio_aux"))
+    sm.add_widget(AudioFM(name="audio_fm"))
     sm.add_widget(Wireless(name="wireless"))
+    sm.add_widget(WirelessWiFi(name="wireless_wifi"))
+    sm.add_widget(WirelessBluetooth(name="wireless_bluetooth"))
     sm.add_widget(Settings(name="settings"))
+    sm.add_widget(SettingsAudio(name="settings_audio"))
+    sm.add_widget(SettingsWireless(name="settings_wireless"))
 
     if Static.is_pi():
         log.debug("is pi, setting fullscreen")

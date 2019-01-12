@@ -136,11 +136,12 @@
             pos: (142, 212)
 
         Button:
+            id: btn_main_menu
             text: 'main menu'
+            size: pt(228), pt(42)
+            pos: (8, 12)
             on_press:
                 root.manager.current = 'main_menu'
-            size: pt(228), pt(64)
-            pos: (8, 64)
 
 
 <MainMenu>:
@@ -191,12 +192,60 @@
         padding: [4, 4, 4, 4]
 
         Button:
+            id: btn_aux
+            text: 'aux'
+            pos: (4, 380)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'audio_aux'
+
+        Button:
+            id: btn_fm
+            text: 'fm'
+            pos: (4, 288)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'audio_fm'
+
+        Button:
             id: btn_back
             text: 'back'
             pos: (8, 80)
             size: pt(228), pt(64)
             on_press:
                 root.manager.current = 'main_menu'
+
+
+<AudioAux>:
+    name: "audio_aux"
+    GridLayout:
+        id: audio_aux
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_back
+            text: 'back'
+            pos: (8, 80)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'audio'
+
+
+<AudioFM>:
+    name: "audio_fm"
+    GridLayout:
+        id: audio_fm
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_back
+            text: 'back'
+            pos: (8, 80)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'audio'
 
 
 <Wireless>:
@@ -207,12 +256,60 @@
         padding: [4, 4, 4, 4]
 
         Button:
+            id: btn_wifi
+            text: 'wifi'
+            pos: (4, 380)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'wireless_wifi'
+
+        Button:
+            id: btn_bluetooth
+            text: 'bluetooth'
+            pos: (4, 288)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'wireless_bluetooth'
+
+        Button:
             id: btn_back
             text: 'back'
             pos: (8, 80)
             size: pt(228), pt(64)
             on_press:
                 root.manager.current = 'main_menu'
+
+
+<WirelessWiFi>:
+    name: "wireless_wifi"
+    GridLayout:
+        id: wireless_wifi
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_back
+            text: 'back'
+            pos: (8, 80)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'wireless'
+
+
+<WirelessBluetooth>:
+    name: "wireless_bluetooth"
+    GridLayout:
+        id: wireless_bluetooth
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_back
+            text: 'back'
+            pos: (8, 80)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'wireless'
 
 
 <Settings>:
@@ -223,9 +320,57 @@
         padding: [4, 4, 4, 4]
 
         Button:
+            id: btn_settings_audio
+            text: "audio"
+            pos: (4, 380)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'settings_audio'
+
+        Button:
+            id: btn_settings_wireless
+            text: "wireless"
+            pos: (4, 288)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'settings_wireless'
+
+        Button:
             id: btn_back
             text: 'back'
             pos: (8, 80)
             size: pt(228), pt(64)
             on_press:
                 root.manager.current = 'main_menu'
+
+
+<SettingsAudio>:
+    name: "settings_audio"
+    GridLayout:
+        id: settings_audio
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_back
+            text: 'back'
+            pos: (8, 80)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'settings'
+
+
+<SettingsWireless>:
+    name: "settings_wireless"
+    GridLayout:
+        id: settings_wireless
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_back
+            text: 'back'
+            pos: (8, 80)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'settings'
