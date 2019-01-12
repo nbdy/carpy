@@ -389,7 +389,7 @@ class Overview(Screen):
                 self.wifi_status = "connected"
                 self.wifi_ip = data[k]
                 wifi_supplied = True
-            elif k.startswith('e'):
+            if k.startswith('e'):
                 self.eth_status = "connected"
                 self.eth_ip = data[k]
                 eth_supplied = True
