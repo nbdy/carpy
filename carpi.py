@@ -4,7 +4,7 @@ from gps import gps, WATCH_ENABLE
 from loguru import logger as log
 import netifaces
 from os.path import abspath, dirname, isfile, isdir
-from os import listdir, geteuid
+from os import listdir, geteuid, makedirs
 from scapy.all import sniff
 from scapy.layers.dot11 import Dot11
 from subprocess import Popen, PIPE
@@ -17,8 +17,10 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.properties import StringProperty
 
-
 RUNNING_PATH = dirname(abspath(__file__)) + "/"
+
+if not isdir(RUNNING_PATH + "log/"):
+    makedirs(RUNNING_PATH + "log/")
 
 log.add(RUNNING_PATH + "log/output.log", enqueue=True, backtrace=True)
 
