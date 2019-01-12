@@ -439,7 +439,7 @@ if __name__ == '__main__':
         log.debug("is pi, setting fullscreen")
         # Config.set("graphics", "fullscreen", 0)
         Config.set("graphics", "left", 0)
-        Config.set("graphics", "top", -32)
+        Config.set("graphics", "top", 0)
         Config.set("graphics", "position", "custom")
         Config.set("graphics", "height", 480)
         Config.set("graphics", "width", 320)
