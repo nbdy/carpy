@@ -443,7 +443,11 @@ if __name__ == '__main__':
         # Config.set("graphics", "position", "custom")
         Config.set("graphics", "height", 480)
         Config.set("graphics", "width", 320)
+        Config.write()
     else:
+        log.error("there is no point of running this not on a raspberry pi")
+        log.error('this program is made to run on a raspberry pi with an 480x320 waveshare 3.5" display')
+        exit()
         log.debug("is not pi, setting 320x480 resolution")
         Config.set("graphics", "height", 480)
         Config.set("graphics", "width", 320)
