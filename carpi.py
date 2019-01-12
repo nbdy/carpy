@@ -6,17 +6,17 @@ import netifaces
 from os.path import abspath, dirname, isfile, isdir
 from os import listdir, geteuid
 from scapy.all import sniff
-from scapy.layers.dot11 import Dot11, Dot11Beacon
-from subprocess import Popen, PIPE, check_output, STDOUT
-from json import loads
-from jinja2 import Template
+from scapy.layers.dot11 import Dot11
+from subprocess import Popen, PIPE, STDOUT
 import sounddevice as sd
 import soundfile as sf
-from sys import argv
 from subprocess import check_output, CalledProcessError
-import gi
-gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk
+
+from kivy.app import App
+from kivy.config import Config
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.lang import Builder
+
 
 RUNNING_PATH = dirname(abspath(__file__)) + "/"
 
@@ -57,7 +57,7 @@ class Network(Thread):
     daemon = True
     do_run = False
 
-    cfg = None
+    sleep_time = 2
     callback = None
 
     @staticmethod
@@ -102,10 +102,9 @@ class Network(Thread):
             return ""
         return s[0]["addr"]
 
-    def __init__(self, config, callback):
+    def __init__(self, callback):
         Thread.__init__(self)
         self.do_run = True
-        self.cfg = config
         self.callback = callback
 
     def _check(self):
@@ -116,24 +115,23 @@ class Network(Thread):
             s = self._check()
             if s is not None:
                 self.callback(s)
-            sleep(self.cfg.sleep_time)
+            sleep(self.sleep_time)
 
 
 class GPS(Thread):
     daemon = True
     do_run = False
 
-    cfg = None
+    sleep_time = 2
     callback = None
 
     current_position = None
 
-    def __init__(self, cfg, callback):
+    def __init__(self, callback):
         log.debug("initializing gps")
         Thread.__init__(self)
         log.debug("registering callback")
         self.callback = callback
-        self.cfg = cfg
         self.do_run = True
         log.debug("initialized gps")
 
@@ -162,8 +160,8 @@ class GPS(Thread):
                 log.debug("position has changed; informing main.json")
                 self.parse_current_position(client)
                 self.callback(self.current_position)
-            log.debug("sleeping for " + str(self.cfg.sleep_time))
-            sleep(self.cfg.sleep_time)
+            log.debug("sleeping for " + str(self.sleep_time))
+            sleep(self.sleep_time)
 
     def stop(self):
         self.do_run = False
@@ -173,20 +171,19 @@ class WiFi(Thread):
     daemon = True
     do_run = False
 
-    cfg = None
     callback = None
+    interface = None
 
-    def __init__(self, config, callback):
+    def __init__(self, callback):
         Thread.__init__(self)
         log.debug("initializing wifi")
         self.callback = callback
         self.do_run = True
-        self.cfg = config
         log.debug("initialized wifi")
         if not Static.is_root():
             log.warning("not root, disabling wifi")
             self.do_run = False
-        if self.cfg.interface is None:
+        if self.interface is None:
             log.warning("no interface, disabling wifi")
             self.do_run = False
 
@@ -199,34 +196,13 @@ class WiFi(Thread):
 
     def run(self):
         if self.do_run:
-            sniff(iface=self.cfg.interface, lfilter=self._scapy_cb, stop_filter=self._scapy_stop_filter)
+            sniff(iface=self.interface, lfilter=self._scapy_cb, stop_filter=self._scapy_stop_filter)
 
     def stop(self):
         self.do_run = False
 
 
 class Static(object):
-    @staticmethod
-    def str2orientation(data):
-        if data.lower() in ["v", "vertical"]:
-            return Gtk.Orientation.VERTICAL
-        elif data.lower() in ["h", "horizontal"]:
-            return Gtk.Orientation.HORIZONTAL
-        else:
-            return Gtk.Orientation.HORIZONTAL
-
-    @staticmethod
-    def str2positiontype(data):
-        data = data.lower()
-        if data in ["top", "t"]:
-            return Gtk.PositionType.TOP
-        elif data in ["bottom", "b"]:
-            return Gtk.PositionType.BOTTOM
-        elif data in ["left", "l"]:
-            return Gtk.PositionType.LEFT
-        elif data in ["right", "r"]:
-            return Gtk.PositionType.RIGHT
-
     @staticmethod
     def append_slash(data):
         if not data.endswith("/"):
@@ -246,7 +222,7 @@ class Static(object):
 class AudioLibrary(object):
     albums = []
     songs = []
-    cfg = None
+    path = None
 
     @staticmethod
     def get_songs_in_dir(directory):
@@ -265,14 +241,13 @@ class AudioLibrary(object):
                 albums.append(fp)
         return albums
 
-    def __init__(self, cfg):
-        self.cfg = cfg
-        self.cfg.path = Static.append_slash(self.cfg.path)
-        log.debug("initializing with audio directory '" + self.cfg.path + "'")
+    def __init__(self, path= "~/Music/"):
+        self.path = Static.append_slash(abspath(path))
+        log.debug("initializing with audio directory '" + self.path + "'")
         log.debug("initialized")
 
     def get_albums(self):
-        return self.get_albums_in_dir(self.cfg.path)
+        return self.get_albums_in_dir(self.path)
 
     def get_all_songs(self):
         songs = []
@@ -356,322 +331,62 @@ class AuxOut(Player):
         sd.stop()
 
 
-class UI(Gtk.Window):
-    cfg = None
-
-    class Actions(object):
-        EXTRA_DATA = "data"
-        RELOAD = "reload"
-
-        class Audio(object):
-            PLAY = 0
-            PAUSE = 1
-            QUEUE_SONG = 2
-            QUEUE_DIRECTORY = 3
-
-        class Player(object):
-            AUX = 0
-            FM = 1
-
-    class Templates(object):
-        FOLDER = "templates/"
-        ENTRY = "main.json"
-        UI_EXTRA = "template"
-
-        @staticmethod
-        def build_path(fn):
-            return RUNNING_PATH + UI.Templates.FOLDER + fn
-
-    current_template = None
-    width = 480
-    height = 320
-    box = None
-    grid = None
-    gtkt = None
-    callback = None
-
-    get_ctx = None
-
-    @staticmethod
-    def build_box(orientation=Gtk.Orientation.VERTICAL, spacing=8, homogeneous=True):
-        return Gtk.Box(orientation=orientation, spacing=spacing, homogeneous=homogeneous)
-
-    @staticmethod
-    def build_grid(column_homogeneous=True, col_spacing=8, row_spacing=8):
-        return Gtk.Grid(column_homogeneous=column_homogeneous, column_spacing=col_spacing, row_spacing=row_spacing)
-
-    def set_resolution(self):
-        if Static.is_pi():
-            self.fullscreen()
-        else:
-            self.set_title("carpi")
-            self.resize(480, 320)
-            self.set_resizable(False)
-
-    def __init__(self, get_ctx):
-        Gtk.Window.__init__(self)
-        log.debug("initializing ui")
-        self.get_ctx = get_ctx
-        self.set_resolution()
-        self.box = self.build_box()
-        self.grid = self.build_grid()
-        self.add(self.box)
-        self.connect("destroy", Gtk.main_quit)
-        self.show_all()
-
-    def ui_switch_btn_clicked(self, tpl):
-        self.load_template(tpl, self.get_ctx(tpl))
-
-    def ui_switch_btn_manufacturer(self, lbl, tpl):
-        def cb(btn):
-            log.debug("ui button switch has been clicked '" + lbl + "'")
-            self.ui_switch_btn_clicked(tpl)
-        btn = Gtk.Button.new_with_label(lbl)
-        btn.connect("clicked", cb)
-        return btn
-
-    def class2widget(self, item):
-        cls = item["class"]
-        if cls == "label":
-            lbl = Gtk.Label(item["text"])
-            lbl.set_markup("<span foreground=\"" + item["color"] + "\">")
-            return lbl
-        elif cls == "button":
-            if item["backend_action"] == "reload":
-                return self.ui_switch_btn_manufacturer(item["text"], item["template"])
-        elif cls == "box":
-            box = Gtk.Box(spacing=item["spacing"], homogeneous=item["homogeneous"],
-                          orientation=Static.str2orientation(item["orientation"]))
-            if len(item["items"]) > 0:
-                box = UI.add_to_box(box, item["items"])
-            return box
-        elif cls == "grid":
-            grid = Gtk.Grid()
-            if len(item["items"]) > 0:
-                grid = UI.add_to_box(grid, item["items"])
-            return grid
-
-    @staticmethod
-    def sort_items(items):
-        lst = []
-        for item in items.keys():
-            i = items[item]
-            i["key"] = item
-            lst.append(i)
-        return sorted(lst, key=lambda k: k["id"])
-
-    def add2grid(self, box, items):
-        tmpstrg = {}
-        items = UI.sort_items(items)
-        for i in items:
-            tmpstrg[i["key"]] = self.class2widget(i)
-            a = i["action"].lower()
-            if a == "pack_start":
-                box.pack_start(tmpstrg[i["key"]], True, True, 0)
-            elif a == "pack_end":
-                box.pack_end(tmpstrg[i["key"]], True, True, 0)
-            elif a == "add":
-                box.add(tmpstrg[i["key"]])
-            elif a == "attach":
-                p = i["params"]
-                box.attach(tmpstrg[i["key"]], p["left"], p["top"], p["width"], p["height"])
-            elif a == "attach_next_to":
-                p = i["params"]
-                box.attach_next_to(tmpstrg[i["key"]], tmpstrg[p["neighbor_key"]],
-                                   Static.str2positiontype(p["position_type"]),
-                                   p["width"], p["height"])
-
-    def load_template(self, name, ctx):
-        self.current_template = name
-        with open(UI.Templates.build_path(name)) as data:
-            tpl = Template(data.read())
-        json = loads(tpl.render(ctx=ctx))
-        self.box.remove(self.grid)
-        self.grid = self.build_grid()
-        self.add2grid(self.grid, json["items"])
-        self.box.add(self.grid)
-        self.show_all()
-
-
-class Configuration(object):
+class Callbacks(object):
     network = None
-    bluetooth = None
-    audio_library = None
-    player = None
-    gps = None
-    wifi = None
-
-    class WiFi(object):
-        interface = None  # "wlan0mon"
-
-    class GPS(object):
-        sleep_time = 2
-
-    class Player(object):
-        fm = None
-        aux = None
-
-        class Aux(object):
-            dummy = None
-
-        class FMTransmitter(object):
-            pi_fm_rds_path = "/opt/PiFmRds/src/pi_fm_rds"
-
-        def __init__(self):
-            self.fm = Configuration.Player.FMTransmitter()
-            self.aux = Configuration.Player.Aux()
-
-    class Network(object):
-        sleep_time = 2
-        prefix = "wl"  # prefix of network device which will be watched
-
-    class Bluetooth(object):
-        device = "/dev/hci0"
-        sleep_time = 2
-
-    class AudioLibrary(object):
-        path = "~/Music/"
 
     def __init__(self):
-        self.network = Configuration.Network()
-        self.bluetooth = Configuration.Bluetooth()
-        self.audio_library = Configuration.AudioLibrary()
-        self.player = Configuration.Player()
-        self.gps = Configuration.GPS()
-        self.wifi = Configuration.WiFi()
+        self.network = Network(self.cb_network)
 
-    @staticmethod
-    def help():
-        log.info("usage: python3 carpi.py {arguments}")
-        log.info("{arguments}:")
-        log.info("\t\t\t--help")
-        log.info("\t-ns\t--network-sleep-time\t2")
-        log.info("\t-np\t--network-device-prefix\twl")
-        log.info("\t-bd\t--bluetooth-device\t/dev/hci0")
-        log.info("\t-bs\t--bluetooth-sleep-time\t2")
-        log.info("\t-ap\t--audio-library-path\t~/Music/")
-        log.info("\t-pfmrds\t--player-fm-rds-path\t/opt/PiFmRds/src/pi_fm_rds")
-        log.info("\t-gs\t--gps-sleep-time\t2")
-        log.info("\t-wi\t--wifi-interface\twlan0mon")
-        exit()
-
-    @staticmethod
-    def parse_arguments(arguments):
-        conf = Configuration()
-        i = 0
-        while i < len(arguments):
-            a = arguments[i]
-            if a in ["--help"]:
-                Configuration.help()
-            elif a in ["-ns", "--network-sleep-time"]:
-                conf.network.sleep_time = int(arguments[i + 1])
-            elif a in ["-np", "--network-device-prefix"]:
-                conf.network.prefix = arguments[i + 1]
-            elif a in ["-bd", "--bluetooth-device"]:
-                conf.bluetooth.device = arguments[i + 1]
-            elif a in ["-bs", "--bluetooth-sleep-time"]:
-                conf.bluetooth.sleep_time = int(arguments[i + 1])
-            elif a in ["-ap", "--audio-library-path"]:
-                conf.audio_library.path = arguments[i + 1]
-            elif a in ["-pfmrds", "--player-fm-rds-path"]:
-                conf.player.fm.pi_fm_rds_path = arguments[i + 1]
-            elif a in ["-gs", "--gps-sleep-time"]:
-                conf.gps.sleep_time = int(arguments[i + 1])
-            i += 1
-        return conf
+    def cb_network(self, data):
+        pass
 
 
-class Main(Thread):
-    cfg = None
+class Audio(Screen):
+    pass
 
-    ui = None
-    gps = None
-    wifi = None
-    network = None
 
-    audio_lib = None
-    player = None
+class Wireless(Screen):
+    pass
 
-    do_run = True
 
-    def run(self):
-        log.debug("starting gps")
-        self.gps.start()
-        log.debug("starting wifi")
-        self.wifi.start()
-        log.debug("displaying main.json")
-        self.ui.load_template("main.json", self.__get_ctx("main.json"))
-        while self.do_run:
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-            sleep(0.2)
+class Settings(Screen):
+    pass
 
-    def stop(self):
-        self.wifi.stop()
-        self.gps.stop()
-        self.do_run = False
 
-    def __init__(self, config):
-        Thread.__init__(self)
-        self.cfg = config
-        log.debug("initializing")
-        self.audio_lib = AudioLibrary(self.cfg.audio_library)
-        self.player = AuxOut(self.cfg.player.aux, self.audio_lib)
-        self.network = Network(self.cfg.network, self._nw_cb)
-        self.gps = GPS(self.cfg.gps, self._gps_cb)
-        self.wifi = WiFi(self.cfg.wifi, self._wifi_cb)
-        self.ui = UI(self.__get_ctx)
+class Overview(Screen):
+    pass
 
-    def __deps2ctx(self, deps):
-        log.debug(deps)
-        ctx = {}
-        for dep in deps:
-            if dep in self.__dict__.keys():
-                ctx[dep] = self.__dict__[dep]
-            else:
-                log.error(dep + " has not been implemented")
-        return ctx
 
-    def __get_ctx(self, fn):
-        return self.__deps2ctx(loads(open(UI.Templates.build_path(fn)).read())["dependencies"])
-
-    def _ui_cb(self, action, **kwargs):
-        # UI
-        log.debug(action)
-        log.debug(kwargs)
-
-        # PLAYER
-        if action == UI.Actions.Audio.PLAY:
-            self.player.play(kwargs.get(UI.Actions.EXTRA_DATA))
-        elif action == UI.Actions.Audio.PAUSE:
-            self.player.pause()
-        elif action == UI.Actions.Audio.QUEUE_SONG:
-            self.player.enqueue(kwargs.get(UI.Actions.EXTRA_DATA))
-        elif action == UI.Actions.Audio.QUEUE_DIRECTORY:
-            self.player.enqueue_dir(kwargs.get(UI.Actions.EXTRA_DATA))
-
-    def _ui_player_selected_cb(self, pid):
-        if pid == UI.Actions.Player.FM:
-            self.player = FMTransmitter(self.cfg.player.fm, self.audio_lib)
-        elif pid == UI.Actions.Player.AUX:
-            self.player = AuxOut(self.cfg.player.aux, self.audio_lib)
-
-    def _gps_cb(self, data):
-        self._ui_cb(UI.Actions.RELOAD, template="main.json")
-
-    def _nw_cb(self, data):
-        self._ui_cb(UI.Actions.RELOAD, template="main.json")
-
-    def _wifi_cb(self, data):  # todo process data
-        self._ui_cb(UI.Actions.RELOAD, template="main.json")
+class MainMenu(Screen):
+    pass
 
 
 if __name__ == '__main__':
     log.debug("going to run")
-    m = Main(Configuration.parse_arguments(argv))
-    try:
-        m.start()
-        m.join()
-    except KeyboardInterrupt:
-        log.info("caught ctrl+c; stopping")
-        m.stop()
+
+    Builder.load_file("carpi.kv")
+
+    sm = ScreenManager()
+    sm.add_widget(Overview(name="overview"))
+    sm.add_widget(MainMenu(name="main_menu"))
+    sm.add_widget(Audio(name="audio"))
+    sm.add_widget(Wireless(name="wireless"))
+    sm.add_widget(Settings(name="settings"))
+
+    if Static.is_pi():
+        log.debug("is pi, setting fullscreen")
+        Config.set("fullscreen", 1)
+    else:
+        log.debug("is not pi, setting 320x480 resolution")
+        Config.set("graphics", "height", 480)
+        Config.set("graphics", "width", 320)
+        Config.set("graphics", "resizable", False)
+        Config.write()
+
+    class CarPiApp(App):
+        kv_directory = "templates"
+
+        def build(self):
+            return sm
+
+    CarPiApp().run()

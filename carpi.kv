@@ -1,0 +1,231 @@
+#:kivy 1.0
+
+<ScreenManagement>:
+    Overview:
+        id: overview
+    MainMenu:
+
+
+<Overview>:
+    name: "overview"
+    orientation: "vertical"
+
+    GridLayout:
+        id: main_boxlayout
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Label:
+            id: lbl_overview
+            font_size: 16
+            text: "overview:"
+            pos: (0, 420)
+
+        Label:
+            id: lbl_network_status
+            font_size: 16
+            text: "network status:"
+            pos: (32, 400)
+
+        Label:
+            id: lbl_network_status_value
+            font_size: 16
+            text: "isconnected?"
+            pos: (142, 400)
+
+        Label:
+            id: lbl_network_ip
+            font_size: 16
+            text: "ip:"
+            pos: (4, 380)
+
+        Label:
+            id: lbl_wifi
+            font_size: 16
+            text: "wifi:"
+            pos: (8, 364)
+
+        Label:
+            id: lbl_essid
+            font_size: 16
+            text: "network:"
+            pos: (16, 348)
+
+        Label:
+            id: lbl_essid_value
+            font_size: 16
+            text: "dummynetwork 42"
+            pos: (142, 348)
+
+        Label:
+            id: lbl_gps_overview
+            font_size: 16
+            text: "gps:"
+            pos: (-16, 332)
+
+        Label:
+            id: lbl_gps_longitude
+            font_size: 16
+            text: "lng:"
+            pos: (8, 312)
+
+        Label:
+            id: lbl_gps_longitude_value
+            font_size: 16
+            text: "42.42424242"
+            pos: (142, 312)
+
+        Label:
+            id: lbl_gps_latitude
+            font_size: 16
+            text: "lat:"
+            pos: (8, 292)
+
+        Label:
+            id: lbl_gps_latitude_value
+            font_size: 16
+            text: "24.42424242"
+            pos: (142, 292)
+
+        Label:
+            id: lbl_gps_altitude
+            font_size: 16
+            text: "alt:"
+            pos: (8, 272)
+
+        Label:
+            id: lbl_gps_altitude_value
+            font_size: 16
+            text: "24.24242424"
+            pos: (142, 272)
+
+        Label:
+            id: lbl_gps_speed
+            font_size: 16
+            text: "speed"
+            pos: (8, 252)
+
+        Label:
+            id: lbl_gps_speed_value
+            font_size: 16
+            text: "42"
+            pos: (142, 252)
+
+        Label:
+            id: lbl_gps_precision
+            font_size: 16
+            text: "prc:"
+            pos: (8, 232)
+
+        Label:
+            id: lbl_gps_precision_value
+            font_size: 16
+            text: "42 %"
+            pos: (142, 232)
+
+        Label:
+            id: lbl_gps_satellites
+            font_size: 16
+            text: "sat:"
+            pos: (8, 212)
+
+        Label:
+            id: lbl_gps_satellites_value
+            font_size: 16
+            text: "4"
+            pos: (142, 212)
+
+        Button:
+            text: 'main menu'
+            on_press:
+                root.manager.current = 'main_menu'
+            size: pt(228), pt(64)
+            pos: (8, 64)
+
+
+<MainMenu>:
+    name: "main_menu"
+    GridLayout:
+        id: main_menu
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_overview
+            text: 'overview'
+            pos: (8, 380)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'overview'
+
+        Button:
+            id: btn_audio
+            text: 'audio'
+            pos: (8, 280)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'audio'
+
+        Button:
+            id: btn_wireless
+            text: 'wireless'
+            pos: (8, 180)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'wireless'
+
+        Button:
+            id: btn_settings
+            text: 'settings'
+            pos: (8, 80)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'settings'
+
+
+<Audio>:
+    name: "audio"
+    GridLayout:
+        id: audio
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_back
+            text: 'back'
+            pos: (8, 80)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'main_menu'
+
+
+<Wireless>:
+    name: "wireless"
+    GridLayout:
+        id: wireless
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_back
+            text: 'back'
+            pos: (8, 80)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'main_menu'
+
+
+<Settings>:
+    name: "settings"
+    GridLayout:
+        id: settings
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_back
+            text: 'back'
+            pos: (8, 80)
+            size: pt(228), pt(64)
+            on_press:
+                root.manager.current = 'main_menu'
