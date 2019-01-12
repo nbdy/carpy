@@ -7,15 +7,15 @@ from os.path import abspath, dirname, isfile, isdir
 from os import listdir, geteuid
 from scapy.all import sniff
 from scapy.layers.dot11 import Dot11
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen, PIPE
 import sounddevice as sd
 import soundfile as sf
-from subprocess import check_output, CalledProcessError
 
 from kivy.app import App
 from kivy.config import Config
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
+from kivy.properties import StringProperty
 
 
 RUNNING_PATH = dirname(abspath(__file__)) + "/"
@@ -60,62 +60,38 @@ class Network(Thread):
     sleep_time = 2
     callback = None
 
-    @staticmethod
-    def get_network_interface(prefix):
-        for iface in netifaces.interfaces():
-            if iface.startswith(prefix):
-                return iface
-        return None
-
-    @staticmethod
-    def wifi_essid():
-        try:
-            o = str(check_output(["iwgetid", "-r"], stderr=STDOUT))
-        except CalledProcessError:
-            log.warning("iwgetid exception; wifi does not seem to be available")
-            return ""
-        if "ESSID" not in o:
-            return ""
-        return o.split(':"')[1].split('"')[0]
-
-    @staticmethod
-    def status(prefix, family=netifaces.AF_INET):
-        iface = Network.get_network_interface(prefix)
-        if iface is None:
-            return None
-        try:
-            return netifaces.ifaddresses(iface)[family]
-        except KeyError:
-            log.exception("get status '" + iface + "' keyerror exception")
-            return None
-
-    @staticmethod
-    def wifi_status():
-        if Network.status("wl") is None:
-            return "not connected"
-        return "connected"
-
-    @staticmethod
-    def wifi_ip():
-        s = Network.status("wl")
-        if s is None:
-            return ""
-        return s[0]["addr"]
+    last_ip_dict = None
 
     def __init__(self, callback):
         Thread.__init__(self)
-        self.do_run = True
         self.callback = callback
+        self.do_run = True
 
-    def _check(self):
-        return self.status("wl") is not None
+    @staticmethod
+    def get_available_interfaces():
+        av_ifaces = []
+        for iface in netifaces.interfaces():
+            for prefix in ['enp', 'wl', 'eth']:
+                if iface.startswith(prefix):
+                    av_ifaces.append(iface)
+        return av_ifaces
+
+    def check_has_ip(self):
+        dct = {}
+        for iface in self.get_available_interfaces():
+            dct[iface] = netifaces.ifaddresses(iface)[netifaces.AF_INET][0]["addr"]
+        return dct
 
     def run(self):
         while self.do_run:
-            s = self._check()
-            if s is not None:
-                self.callback(s)
+            ip_dct = self.check_has_ip()
+            if self.last_ip_dict != ip_dct:
+                self.last_ip_dict = ip_dct
+                self.callback(ip_dct)
             sleep(self.sleep_time)
+
+    def stop(self):
+        self.do_run = False
 
 
 class GPS(Thread):
@@ -157,10 +133,8 @@ class GPS(Thread):
         while self.do_run:
             client.next()
             if client.fix != self.current_position:
-                log.debug("position has changed; informing main.json")
                 self.parse_current_position(client)
                 self.callback(self.current_position)
-            log.debug("sleeping for " + str(self.sleep_time))
             sleep(self.sleep_time)
 
     def stop(self):
@@ -331,16 +305,6 @@ class AuxOut(Player):
         sd.stop()
 
 
-class Callbacks(object):
-    network = None
-
-    def __init__(self):
-        self.network = Network(self.cb_network)
-
-    def cb_network(self, data):
-        pass
-
-
 class Audio(Screen):
     pass
 
@@ -378,7 +342,66 @@ class SettingsWireless(Screen):
 
 
 class Overview(Screen):
-    pass
+    network = None
+
+    network_status = StringProperty("disconnected")
+
+    wifi_status = StringProperty("disconnected")
+    wifi_essid = StringProperty()
+    wifi_ip = StringProperty()
+
+    eth_status = StringProperty("disconnected")
+    eth_ip = StringProperty()
+
+    gps = None
+
+    gps_status = StringProperty("not found")
+    gps_longitude = StringProperty()
+    gps_latitude = StringProperty()
+    gps_altitude = StringProperty()
+    gps_speed = StringProperty()
+    gps_climb = StringProperty()
+    gps_satellites_used = StringProperty()
+    gps_precision = StringProperty()
+
+    def __init__(self):
+        Screen.__init__(self, name="overview")
+        self.network = Network(self.cb_network)
+        self.gps = GPS(self.cb_gps)
+        self.network.start()
+        self.gps.start()
+
+    def cb_network(self, data):
+        self.network_status = "connected"
+        wifi_supplied = False
+        eth_supplied = False
+        for k in data.keys():
+            if k.startswith('wl'):
+                self.wifi_status = "connected"
+                self.wifi_ip = data[k]
+                wifi_supplied = True
+            elif k.startswith('e'):
+                self.eth_status = "connected"
+                self.eth_ip = data[k]
+                eth_supplied = True
+        if not wifi_supplied:
+            self.wifi_status = "disconnected"
+            self.wifi_essid = ""
+            self.wifi_ip = ""
+        if not eth_supplied:
+            self.eth_status = "disconnected"
+            self.eth_ip = ""
+
+    def cb_gps(self, data):
+        self.gps_status = data["status"]
+        if self.gps_status != "not found":
+            self.gps_longitude = data["longitude"]
+            self.gps_latitude = data["latitude"]
+            self.gps_altitude = data["altitude"]
+            self.gps_speed = data["speed"]
+            self.gps_climb = data["climb"]
+            self.gps_satellites_used = data["satellites_used"]
+            self.gps_precision = data["precision"]
 
 
 class MainMenu(Screen):
@@ -391,7 +414,7 @@ if __name__ == '__main__':
     Builder.load_file("carpi.kv")
 
     sm = ScreenManager()
-    sm.add_widget(Overview(name="overview"))
+    sm.add_widget(Overview())
     sm.add_widget(MainMenu(name="main_menu"))
     sm.add_widget(Audio(name="audio"))
     sm.add_widget(AudioAux(name="audio_aux"))
