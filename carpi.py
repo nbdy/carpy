@@ -16,6 +16,7 @@ from kivy.config import Config
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.properties import StringProperty
+from kivy.core.window import Window
 
 RUNNING_PATH = dirname(abspath(__file__)) + "/"
 
@@ -434,7 +435,8 @@ if __name__ == '__main__':
 
     if Static.is_pi():
         log.debug("is pi, setting fullscreen")
-        Config.set("graphics", "fullscreen", True)
+        # Config.set("graphics", "fullscreen", True)
+        Window.fullscreen = True
     else:
         log.debug("is not pi, setting 320x480 resolution")
         Config.set("graphics", "height", 480)
