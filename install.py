@@ -56,10 +56,12 @@ class Setup(object):
     def install_dependencies():
         system("sudo apt install python3 python3-dev python3-pip gpsd gpsd-clients libjpeg-dev libtiff-dev "
                "xserver-xorg-input-evdev libsndfile-dev tcpdump -y")
-        system("sudo pip3 install -r requirements.txt")
         system("sudo cp stl/final/99-calibration.conf /usr/share/X11/xorg.conf.d/")
         with open("/boot/config.txt", "a") as o:
-            o.write("\ndisplay_rotate=1\n")
+            log.debug("opened /boot/config.txt")
+            if "display_rotate=1" not in o.read():
+                o.write("\ndisplay_rotate=1\n")
+                log.debug("wrote display_rotate=1 into /boot/config.txt")
         system("cd /opt ; git clone https://github.com/ChristopheJacquet/PiFmRds ; cd PiFmRds/src ; make clean ; make")
         system("cd /tmp ; wget http://osoyoo.com/driver/LCD_show_35hdmi.tar.gz ; tar xf LCD_show_35hdmi.tar.gz ; "
                "rm LCD_show_35hdmi.tar.gz ; cd LCD_show_35hdmi/ ; sudo ./LCD35_480\*320")

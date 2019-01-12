@@ -26,6 +26,7 @@ todo:
 
 ### install (dependencies):
 ```
+pip install -r requirements.txt
 sudo python3 install.py -id
 ```
 
