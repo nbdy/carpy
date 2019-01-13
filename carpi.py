@@ -304,6 +304,8 @@ class FMTransmitter(Player):
             cmd = ["sox", "-t", fp, "-t", "wav", "-", "|"] + cmd + ["-"]
         else:
             cmd += fp
+        log.debug("manufactured this command:")
+        log.debug("\t" + str(cmd))
         return cmd
 
     def play(self, fp):
