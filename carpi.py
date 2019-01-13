@@ -321,7 +321,10 @@ class FMTransmitter(Player):
         self.css.kill()
 
     def unpause(self):
-        self.css = Popen(self.last_cmd, stdout=PIPE)
+        if len(self.last_cmd) > 0:
+            self.css = Popen(self.last_cmd, stdout=PIPE)
+        else:
+            self.play(self.audio_lib.get_random_song())
 
     def next(self):
         self.css.kill()
