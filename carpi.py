@@ -301,7 +301,7 @@ class FMTransmitter(Player):
     def manufacture_cmd(self, fp):
         cmd = ["./", self.pi_fm_rds_path, "-freq", str(self.freq), "-audio"]
         if fp.endswith(".mp3"):
-            cmd = ["sox", "-t", fp, "-t", "wav", "-", "|"] + cmd + ["-"]
+            cmd = ["sox", "-t mp3", fp, "-t", "wav", "-", "|"] + cmd + ["-"]
         else:
             cmd += fp
         log.debug("manufactured this command:")
