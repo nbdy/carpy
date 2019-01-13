@@ -20,6 +20,7 @@ done:
 - install script
 
 todo:
+- voice control
 - map / navigation
 - radio broadcast 
 - wardriving
@@ -27,18 +28,18 @@ todo:
 
 ### install (dependencies):
 ```
-pip install -r requirements.txt
-sudo python3 install.py -id
+python3.7 -m pip install -r requirements.txt
+sudo python3.7 install.py -id
 ```
 
 ### install (autostart):
 ```
-python3 install.py -ia
+python3.7 install.py -ia
 ```
 
 ### uninstall (autostart):
 ```
-python3 install.py -ua
+python3.7 install.py -ua
 ```
 
 ### faq:

@@ -4,3 +4,4 @@ scapy
 netifaces
 gps
 kivy
+netifaces

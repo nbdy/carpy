@@ -303,9 +303,30 @@
 <AudioFM>:
     name: "audio_fm"
     GridLayout:
-        id: audio_fm
+        id: audio_aux
         orientation: "vertical"
         padding: [4, 4, 4, 4]
+
+        Label:
+            id: lbl_song_title
+            text: root.current_song
+            pos: (8, 420)
+
+        Button:
+            id: btn_play_pause
+            text: ">"
+            pos: (120, 128)
+            size: pt(64), pt(32)
+            on_press:
+                root.play_or_pause()
+
+        Button:
+            id: btn_change_to_next_song
+            text: ">>"
+            pos: (228, 128)
+            size: pt(64), pt(32)
+            on_press:
+                root.change_to_next_song()
 
         Button:
             id: btn_back

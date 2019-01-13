@@ -120,10 +120,16 @@ class GPS(Thread):
         Thread.__init__(self)
         log.debug("registering callback")
         self.callback = callback
-        self.do_run = True
+        try:
+            self.client = gps(mode=WATCH_ENABLE)
+            self.do_run = True
+        except OSError:
+            log.exception("could not connect to gpsd")
+
         log.debug("initialized gps")
 
-    def parse_current_position(self, c):
+    def parse_current_position(self):
+        c = self.client
         self.current_position = {
             "longitude": c.fix.longitude,
             "latitude": c.fix.latitude,
@@ -141,11 +147,10 @@ class GPS(Thread):
 
     def run(self):
         log.debug("running")
-        client = gps(mode=WATCH_ENABLE)
         while self.do_run:
-            client.next()
-            if client.fix != self.current_position:
-                self.parse_current_position(client)
+            self.client.next()
+            if self.client.fix != self.current_position:
+                self.parse_current_position()
                 self.callback(self.current_position)
             sleep(self.sleep_time)
 
@@ -238,6 +243,7 @@ class Player(Thread):
     daemon = True
     do_run = False
 
+    playing = False
     queue = []
     current_song = None
     current_song_position = 0
@@ -277,6 +283,9 @@ class Player(Thread):
 
 class FMTransmitter(Player):
     css = None
+    freq = 104.2
+    enable_radio_text = True
+    last_cmd = []
     pi_fm_rds_path = "/opt/PiFmRds/src/pi_fm_rds"
 
     def __init__(self, audio_lib):
@@ -285,24 +294,35 @@ class FMTransmitter(Player):
             if not isfile(self.pi_fm_rds_path):
                 raise Exception("/opt/PiFmRds/src/pi_fm_rds does not exist")
 
-    def play(self, fp):
-        if not isfile(fp):
-            return False
+    def manufacture_cmd(self, fp):
+        cmd = ["./", self.pi_fm_rds_path, "-freq", str(self.freq), "-audio"]
         if fp.endswith(".mp3"):
-            self.css = Popen(["sox", "-t", fp, "-t", "wav", "-", "|", "./" + self.pi_fm_rds_path,
-                              "-audio", "-"], stdout=PIPE)
-            return True
-        elif fp.endswith(".wav"):
-            self.css = Popen(["./" + self.pi_fm_rds_path, "-audio", fp], stdout=PIPE)
+            cmd = ["sox", "-t", fp, "-t", "wav", "-", "|"] + cmd + ["-"]
+        else:
+            cmd += fp
+        return cmd
+
+    def play(self, fp):
+        if isfile(fp):
+            self.last_cmd = self.manufacture_cmd(fp)
+            self.css = Popen(self.last_cmd, stdout=PIPE)
             return True
         else:
-            log.error("not sure what '" + fp[-4:-1] + "'kind of file extension is")
+            log.error(fp + "does not exist")
             return False
+
+    def pause(self):
+        self.css.kill()
+
+    def unpause(self):
+        self.css = Popen(self.last_cmd, stdout=PIPE)
+
+    def next(self):
+        self.css.kill()
+        self.play(self.audio_lib.get_random_song())
 
 
 class AuxOut(Player):
-    playing = False
-
     def play(self, fp):
         self.playing = True
         self.current_song = SoundLoader.load(fp)
@@ -342,14 +362,9 @@ class Audio(Screen):
     pass
 
 
-class AudioAux(Screen):
+class AudioPlayer(Screen):
     audio = None
     current_song = StringProperty()
-
-    def __init__(self):
-        Screen.__init__(self, name="audio_aux")
-        audio = AuxOut(audio_library)
-        self.audio = audio
 
     def change_to_next_song(self):
         self.audio.next()
@@ -365,9 +380,14 @@ class AudioAux(Screen):
             self.audio.playing = True
 
 
-class AudioFM(Screen):
-    audio = None
+class AudioAux(AudioPlayer):
+    def __init__(self):
+        Screen.__init__(self, name="audio_aux")
+        audio = AuxOut(audio_library)
+        self.audio = audio
 
+
+class AudioFM(AudioPlayer):
     def __init__(self):
         Screen.__init__(self, name="audio_fm")
         audio = FMTransmitter(audio_library)
@@ -429,29 +449,35 @@ class Overview(Screen):
         self.gps.start()
 
     def cb_network(self, data):
+        log.debug("network changed")
         self.network_status = "connected"
         wifi_supplied = False
         eth_supplied = False
         for k in data.keys():
             if k.startswith('wl'):
+                log.debug("wifi has new ip: " + data[k])
                 self.wifi_status = "connected"
                 self.wifi_ip = data[k]
                 wifi_supplied = True
             if k.startswith('e'):
+                log.debug("ethernet has new ip: " + data[k])
                 self.eth_status = "connected"
                 self.eth_ip = data[k]
                 eth_supplied = True
         if not wifi_supplied:
+            log.debug("wifi is disconnected")
             self.wifi_status = "disconnected"
             self.wifi_essid = ""
             self.wifi_ip = ""
         if not eth_supplied:
+            log.debug("ethernet is disconnected")
             self.eth_status = "disconnected"
             self.eth_ip = ""
 
     def cb_gps(self, data):
         self.gps_status = data["status"]
         if self.gps_status != "not found":
+            log.debug("got gps location")
             self.gps_longitude = data["longitude"]
             self.gps_latitude = data["latitude"]
             self.gps_altitude = data["altitude"]
@@ -500,9 +526,8 @@ if __name__ == '__main__':
         Config.write()
 
     class CarPiApp(App):
-        kv_directory = "templates"
-
         def build(self):
             return sm
 
-    CarPiApp().run()
+    app = CarPiApp()
+    app.run()
