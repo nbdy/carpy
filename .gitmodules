@@ -1,0 +1,3 @@
+[submodule "pybt"]
+	path = pybt
+	url = git://github.com/trig0n/pybt.git

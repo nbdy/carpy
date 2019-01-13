@@ -68,12 +68,20 @@ class Setup(object):
                "rm LCD_show_35hdmi.tar.gz ; cd LCD_show_35hdmi/ ; sudo ./LCD35_480\*320")
 
     @staticmethod
+    def install_submodules():
+        system("git submodule init")
+        system("git submodule update")
+        system("cd pybt ; ./dependencies.sh ; pip3 install -r requirements.txt")
+        system("cd porcupine ; pip3 install -r requirements.txt")
+
+    @staticmethod
     def help():
         log.info("usage: python3 carpi.py {arguments}")
         log.info("{arguments}:")
         log.info("\t-ia\t--install-autostart")
         log.info("\t-ua\t--uninstall-autostart")
         log.info("\t-id\t--install-dependencies")
+        log.info("\t-is\t--install-submodules")
         exit()
 
     @staticmethod
@@ -91,6 +99,9 @@ class Setup(object):
             elif a in ["-id", "--install-dependencies"]:
                 should_be_root()
                 Setup.install_dependencies()
+            elif a in ["-is", "--install-submodules"]:
+                should_not_be_root()
+                Setup.install_submodules()
             else:
                 Setup.help()
             i += 1

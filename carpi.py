@@ -20,10 +20,6 @@ from kivy.lang import Builder
 from kivy.core.audio import SoundLoader
 from kivy.properties import StringProperty
 
-# todo map: https://github.com/kivy-garden/garden.mapview
-# todo geocoder for map
-# todo virtual keyboard: https://kivy.org/doc/stable/api-kivy.uix.vkeyboard.html
-
 environ["SDL_FBDEV"] = "/dev/fb0"
 
 RUNNING_PATH = dirname(abspath(__file__)) + "/"
@@ -38,18 +34,23 @@ Config.set("kivy", "log_level", "debug")
 Config.set("kivy", "log_dir", RUNNING_PATH + "log/")
 
 # todo
-# labels for wifi
+# overview wifi
 # - is connected
-# - - to essid
-# - - signal strength
-#
-# labels for gps
-# - has fix
-# - - lng / lat
-# - - speed
-#
-# rpi radio sender
-# https://howtoraspberrypi.com/create-radio-transmitter-raspberry-pi/
+# -- signal strength
+# wireless
+# - wifi list / scan option
+# - bluetooth list / scan option
+# -- device view / options
+# settings
+# - overview
+# -- design
+# - wifi
+# - bluetooth
+# -- ctrl state
+# -- wardrive mode
+# todo map: https://github.com/kivy-garden/garden.mapview
+# todo geocoder for map
+# todo virtual keyboard: https://kivy.org/doc/stable/api-kivy.uix.vkeyboard.html
 
 
 class Bluetooth(object):
@@ -398,86 +399,38 @@ class AudioFM(AudioPlayer):
 
 
 class Wireless(Screen):
-    pass
+    def __init__(self):
+        Screen.__init__(self, name="wireless")
 
 
 class WirelessWiFi(Screen):
-    pass
+    def __init__(self):
+        Screen.__init__(self, name="wireless_wifi")
 
 
 class WirelessBluetooth(Screen):
-    pass
+    def __init__(self):
+        Screen.__init__(self, name="wireless_bluetooth")
 
 
 class Settings(Screen):
-    pass
+    def __init__(self):
+        Screen.__init__(self, name="settings")
 
 
 class SettingsAudio(Screen):
-    pass
+    def __init__(self):
+        Screen.__init__(self, name="settings_audio")
 
 
 class SettingsWireless(Screen):
-    pass
-
-
-class SpeechController(Thread):
-    daemon = True
-    do_run = False
-    handle = None
-    recorded_frames = []
-    num_keywords = 0
-    keyword_names = None  # todo
-
     def __init__(self):
-        Thread.__init__(self)
-        self.do_run = isdir("porcupine/")
-        if self.do_run:
-            # todo fill sensitivities parameter
-            self.handle = Porcupine(
-                self.get_porcupine_library(),
-                "porcupine/lib/common/porcupine_params.pv",
-                keyword_file_paths="porcupine/models/",
-            )
+        Screen.__init__(self, name="settings_wireless")
 
-    @staticmethod
-    def get_porcupine_library():
-        if Static.is_pi():
-            model = open("/proc/device-tree/model").read().lower()
-            if "zero" in model or "model a" in model or "model b" in model:
-                return "porcupine/lib/raspberry-pi/arm11/"
-            elif "pi 2" in model:
-                return "porcupine/lib/raspberry-pi/cortex-a7/"
-            elif "pi 3" in model:
-                return "porcupine/lib/raspberry-pi/cortex-a53/"
-        else:
-            return "porcupine/lib/linux/x86_64/"  # who still uses i386
 
-    def audio_callback(self, in_data, frame_count, time_info, status):
-        if frame_count >= self.handle.frame_length:
-            pcm = struct.unpack_from("h" * self.handle.frame_length, in_data)
-            result = self.handle.process(pcm)
-            if self.num_keywords == 1 and result:
-                print('[%s] detected keyword' % str(datetime.now()))
-                # add your own code execution here ... it will not block the recognition
-            elif self.num_keywords > 1 and result >= 0:
-                print('[%s] detected %s' % (str(datetime.now()), self.keyword_names[result]))
-                # or add it here if you use multiple keywords
-
-        return None, paContinue
-
-    def run(self):
-        pa = PyAudio()
-        astrm = pa.open(rate=self.handle.sample_rate, channels=1, format=paInt16, input=True,
-                        frames_per_buffer=self.handle.frame_length, input_device_index=None, stream_callback=self.audio_callback)
-        astrm.start_stream()
-        while self.do_run:
-            sleep(0.1)
-
-        astrm.stop_stream()
-        astrm.close()
-        pa.terminate()
-        self.handle.delete()
+class Map(Screen):
+    def __init__(self):
+        Screen.__init__(self, name="map")
 
 
 class Overview(Screen):
@@ -550,7 +503,67 @@ class Overview(Screen):
 
 
 class MainMenu(Screen):
-    pass
+    def __init__(self):
+        Screen.__init__(self, name="main_menu")
+
+
+class SpeechController(Thread):
+    daemon = True
+    do_run = False
+    handle = None
+    recorded_frames = []
+    num_keywords = 0
+    keyword_names = None  # todo
+
+    def __init__(self):
+        Thread.__init__(self)
+        self.do_run = isdir("porcupine/")
+        if self.do_run:
+            # todo fill sensitivities parameter
+            self.handle = Porcupine(
+                self.get_porcupine_library(),
+                "porcupine/lib/common/porcupine_params.pv",
+                keyword_file_paths="porcupine/models/",
+            )
+
+    @staticmethod
+    def get_porcupine_library():
+        if Static.is_pi():
+            model = open("/proc/device-tree/model").read().lower()
+            if "zero" in model or "model a" in model or "model b" in model:
+                return "porcupine/lib/raspberry-pi/arm11/"
+            elif "pi 2" in model:
+                return "porcupine/lib/raspberry-pi/cortex-a7/"
+            elif "pi 3" in model:
+                return "porcupine/lib/raspberry-pi/cortex-a53/"
+        else:
+            return "porcupine/lib/linux/x86_64/"  # who still uses i386
+
+    def audio_callback(self, in_data, frame_count, time_info, status):
+        if frame_count >= self.handle.frame_length:
+            pcm = struct.unpack_from("h" * self.handle.frame_length, in_data)
+            result = self.handle.process(pcm)
+            if self.num_keywords == 1 and result:
+                print('[%s] detected keyword' % str(datetime.now()))
+                # add your own code execution here ... it will not block the recognition
+            elif self.num_keywords > 1 and result >= 0:
+                print('[%s] detected %s' % (str(datetime.now()), self.keyword_names[result]))
+                # or add it here if you use multiple keywords
+
+        return None, paContinue
+
+    def run(self):
+        pa = PyAudio()
+        astrm = pa.open(rate=self.handle.sample_rate, channels=1, format=paInt16, input=True,
+                        frames_per_buffer=self.handle.frame_length, input_device_index=None, stream_callback=self.audio_callback)
+        astrm.start_stream()
+        while self.do_run:
+            sleep(0.1)
+
+        astrm.stop_stream()
+        astrm.close()
+        pa.terminate()
+        self.handle.delete()
 
 
 if __name__ == '__main__':
@@ -560,16 +573,17 @@ if __name__ == '__main__':
 
     sm = ScreenManager()
     sm.add_widget(Overview())
-    sm.add_widget(MainMenu(name="main_menu"))
-    sm.add_widget(Audio(name="audio"))
+    sm.add_widget(MainMenu())
+    sm.add_widget(Audio())
     sm.add_widget(AudioAux())
     sm.add_widget(AudioFM())
-    sm.add_widget(Wireless(name="wireless"))
-    sm.add_widget(WirelessWiFi(name="wireless_wifi"))
-    sm.add_widget(WirelessBluetooth(name="wireless_bluetooth"))
-    sm.add_widget(Settings(name="settings"))
-    sm.add_widget(SettingsAudio(name="settings_audio"))
-    sm.add_widget(SettingsWireless(name="settings_wireless"))
+    sm.add_widget(Wireless())
+    sm.add_widget(WirelessWiFi())
+    sm.add_widget(WirelessBluetooth())
+    sm.add_widget(Map())
+    sm.add_widget(Settings())
+    sm.add_widget(SettingsAudio())
+    sm.add_widget(SettingsWireless())
 
     if Static.is_pi():
         log.debug("is pi, setting fullscreen")

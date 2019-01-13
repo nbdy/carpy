@@ -201,32 +201,40 @@
         Button:
             id: btn_overview
             text: 'overview'
-            pos: (8, 320)
-            size: pt(228), pt(64)
+            pos: (8, 400)
+            size: pt(228), pt(50)
             on_press:
                 root.manager.current = 'overview'
 
         Button:
             id: btn_audio
             text: 'audio'
-            pos: (8, 220)
-            size: pt(228), pt(64)
+            pos: (8, 330)
+            size: pt(228), pt(50)
             on_press:
                 root.manager.current = 'audio'
 
         Button:
             id: btn_wireless
             text: 'wireless'
-            pos: (8, 120)
-            size: pt(228), pt(64)
+            pos: (8, 260)
+            size: pt(228), pt(50)
             on_press:
                 root.manager.current = 'wireless'
 
         Button:
+            id: btn_map
+            text: "map"
+            pos: (8, 190)
+            size: pt(228), pt(50)
+            on_press:
+                root.manager.current = "map"
+
+        Button:
             id: btn_settings
             text: 'settings'
-            pos: (8, 20)
-            size: pt(228), pt(64)
+            pos: (8, 10)
+            size: pt(228), pt(50)
             on_press:
                 root.manager.current = 'settings'
 
@@ -399,6 +407,23 @@
             size: pt(228), pt(64)
             on_press:
                 root.manager.current = 'wireless'
+
+
+<Map>:
+    name: "map"
+
+    GridLayout:
+        id: map
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_back
+            text: "back"
+            pos: (8, 10)
+            size: pt(228), pt(30)
+            on_press:
+                root.manager.current = "main_menu"
 
 
 <Settings>:

@@ -27,19 +27,25 @@ todo:
 - ...
 
 ### install (dependencies):
+#### required
 ```
-python3.7 -m pip install -r requirements.txt
-sudo python3.7 install.py -id
+pip3 install -r requirements.txt
+sudo python3 install.py -id
+```
+#### optional
+##### porcupine (speech control)
+```
+python3 install.py -is
 ```
 
 ### install (autostart):
 ```
-python3.7 install.py -ia
+python3 install.py -ia
 ```
 
 ### uninstall (autostart):
 ```
-python3.7 install.py -ua
+python3 install.py -ua
 ```
 
 ### faq:
