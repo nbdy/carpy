@@ -227,6 +227,15 @@ class AudioLibrary(object):
                 songs.append(directory + fp)
         return songs
 
+    def convert_files(self):
+        cvt_songs = []
+        for song in self.songs:
+            if song.endswith(".wav"):
+                cvt_songs.append(song)
+            elif song.endswith(".mp3"):
+                Popen(["ffmpeg", "-i", song, song.replace(".mp3", ".wav")], stdout=PIPE)
+        return cvt_songs
+
     def __init__(self, path="~/Music/"):
         if path.startswith("~"):
             if Static.is_pi() and Static.is_root():
@@ -236,6 +245,7 @@ class AudioLibrary(object):
         else:
             self.path = Static.append_slash(abspath(path))
         self.songs = self.get_songs_in_dir(self.path)
+        self.songs = self.convert_files()
         log.debug("initializing with audio directory '" + self.path + "'")
         log.debug("found " + str(len(self.songs)) + " songs in directory")
 

@@ -64,4 +64,7 @@ Q: the input axis are correct, but the screen is still horizontal?<br>
 A: add "display_rotate=1" to /boot/config.txt<br>
 <br>
 Q: how do i adjust the ui to my needs?<br>
-A: check the 'templates/' folder. it includes the stuff that makes up the ui.
+A: check the 'templates/' folder. it includes the stuff that makes up the ui.<br>
+<br>
+Q: my mp3's sound super slowed when played over radio?<br>
+A: yah.. idk. convert them to wav's (ffmpeg -i in.mp3 out.wav )
