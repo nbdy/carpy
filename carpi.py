@@ -3,18 +3,18 @@ from threading import Thread
 from gps import gps, WATCH_ENABLE
 from loguru import logger as log
 import netifaces
-from os.path import abspath, dirname, isfile, isdir
+from os.path import abspath, dirname, isfile, isdir, expanduser
 from os import listdir, geteuid, makedirs, environ
 from scapy.all import sniff
 from scapy.layers.dot11 import Dot11
 from subprocess import Popen, PIPE
-import sounddevice as sd
-import soundfile as sf
+from random import randint
 
 from kivy.app import App
 from kivy.config import Config
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
+from kivy.core.audio import SoundLoader
 from kivy.properties import StringProperty
 
 # todo map: https://github.com/kivy-garden/garden.mapview
@@ -206,7 +206,6 @@ class Static(object):
 
 # todo: support nested albums
 class AudioLibrary(object):
-    albums = []
     songs = []
     path = None
 
@@ -215,33 +214,21 @@ class AudioLibrary(object):
         directory = Static.append_slash(directory)
         songs = []
         for fp in listdir(directory):
-            if isfile(fp) and fp[-4:-1] in [".wav", ".mp3"]:
+            if fp.endswith(".mp3") or fp.endswith(".wav"):
                 songs.append(directory + fp)
-
-    @staticmethod
-    def get_albums_in_dir(directory):
-        directory = Static.append_slash(directory)
-        albums = []
-        for fp in listdir(directory):
-            if isdir(fp):
-                albums.append(fp)
-        return albums
+        return songs
 
     def __init__(self, path="~/Music/"):
-        self.path = Static.append_slash(abspath(path))
-        self.albums = self.get_albums()
-        self.songs = self.get_all_songs()
+        if path.startswith("~"):
+            self.path = expanduser(path)
+        else:
+            self.path = Static.append_slash(abspath(path))
+        self.songs = self.get_songs_in_dir(self.path)
         log.debug("initializing with audio directory '" + self.path + "'")
-        log.debug("initialized")
+        log.debug("found " + str(len(self.songs)) + " songs in directory")
 
-    def get_albums(self):
-        return self.get_albums_in_dir(self.path)
-
-    def get_all_songs(self):
-        songs = []
-        for a in self.get_albums():
-            songs += self.get_songs_in_dir(a)
-        return songs
+    def get_random_song(self):
+        return self.songs[randint(0, len(self.songs) - 1)]
 
 
 class Player(Thread):
@@ -250,17 +237,22 @@ class Player(Thread):
 
     queue = []
     current_song = None
+    current_song_position = 0
 
     audio_lib = None
 
     def __init__(self, audio_lib):
         Thread.__init__(self)
         self.audio_lib = audio_lib
+        self.do_run = True
 
     def play(self, fp):
         pass
 
     def pause(self):
+        pass
+
+    def next(self):
         pass
 
     def unpause(self):
@@ -306,26 +298,37 @@ class FMTransmitter(Player):
 
 
 class AuxOut(Player):
+    playing = False
+
     def play(self, fp):
-        self.current_song = fp
-        data, fs = sf.read(fp, dtype='float32')
-        sd.play(data, fs)
+        self.playing = True
+        self.current_song = SoundLoader.load(fp)
+        self.current_song.bind(on_stop=self.cb_current_song_ended)
+        log.debug("loaded song '" + self.current_song.source + "' with a length of " + str(self.current_song.length))
+        self.current_song.play()
+
+    def cb_current_song_ended(self, signal):
+        if self.playing:
+            log.debug(signal)
+            log.debug(self.current_song.source + " has ended; playing next song")
+            self.play(self.audio_lib.get_random_song())
+
+    def next(self):
+        self.current_song.stop()
 
     def pause(self):
-        sd.stop()
+        self.playing = False
+        self.current_song_position = self.current_song.get_pos()
+        self.current_song.stop()
 
     def unpause(self):
-        ns = self.queue[0]
-        self.queue.pop(0)
-        self.play(ns)
-
-    def stop(self):
-        sd.stop()
-
-    def run(self):
-        s = sd.wait()
-        if s:
-            log.error(s)
+        self.playing = True
+        if self.current_song is not None:
+            if self.current_song.source is not None:
+                self.current_song.play()
+                self.current_song.seek(self.current_song_position)
+        else:
+            self.play(self.audio_lib.get_random_song())
 
 
 audio_library = AudioLibrary()
@@ -338,7 +341,6 @@ class Audio(Screen):
 
 class AudioAux(Screen):
     audio = None
-
     current_song = StringProperty()
 
     def __init__(self):
@@ -346,14 +348,18 @@ class AudioAux(Screen):
         audio = AuxOut(audio_library)
         self.audio = audio
 
-    def change_to_last_song(self):
-        log.debug("changing to last song")
-
     def change_to_next_song(self):
-        log.debug("changing to next song")
+        self.audio.next()
 
-    def pause_song(self):
-        log.debug("pausing current song")
+    def play_or_pause(self):
+        if self.audio.playing:
+            self.ids["btn_play_pause"].text = ">"
+            self.audio.pause()
+            self.audio.playing = False
+        else:
+            self.ids["btn_play_pause"].text = "||"
+            self.audio.unpause()
+            self.audio.playing = True
 
 
 class AudioFM(Screen):

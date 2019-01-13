@@ -276,25 +276,17 @@
             pos: (8, 420)
 
         Button:
-            id: btn_change_to_last_song
-            text: "<<"
-            pos: (4, 128)
-            size: pt(64), pt(32)
-            on_press:
-                root.change_to_last_song()
-
-        Button:
-            id: btn_pause_song
-            text: "||"
+            id: btn_play_pause
+            text: ">"
             pos: (120, 128)
             size: pt(64), pt(32)
             on_press:
-                root.pause_song()
+                root.play_or_pause()
 
         Button:
             id: btn_change_to_next_song
             text: ">>"
-            pos: (232, 128)
+            pos: (228, 128)
             size: pt(64), pt(32)
             on_press:
                 root.change_to_next_song()
