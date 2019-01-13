@@ -299,7 +299,7 @@ class FMTransmitter(Player):
                 raise Exception("/opt/PiFmRds/src/pi_fm_rds does not exist")
 
     def manufacture_cmd(self, fp):
-        cmd = ["./", self.pi_fm_rds_path, "-freq", str(self.freq), "-audio"]
+        cmd = [self.pi_fm_rds_path, "-freq", str(self.freq), "-audio"]
         if fp.endswith(".mp3"):
             cmd = ["sox", "-t mp3", fp, "-t", "wav", "-", "|"] + cmd + ["-"]
         else:
