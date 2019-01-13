@@ -54,7 +54,7 @@ class Setup(object):
 
     @staticmethod
     def install_dependencies():
-        system("sudo apt install python3.7 python3.7-dev python3-pip gpsd gpsd-clients libjpeg-dev libtiff-dev "
+        system("sudo apt install python3.7 python3.7-dev python3-pip gpsd gpsd-clients libjpeg-dev libtiff-dev sox"
                "xserver-xorg-input-evdev libsndfile-dev tcpdump build-essential swig git libpulse-dev libasound2-dev "
                "-y")
         system("sudo cp stl/final/99-calibration.conf /usr/share/X11/xorg.conf.d/")
