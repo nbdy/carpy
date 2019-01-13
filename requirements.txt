@@ -5,3 +5,4 @@ netifaces
 gps
 kivy
 netifaces
+PyAudio

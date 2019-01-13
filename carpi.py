@@ -9,6 +9,9 @@ from scapy.all import sniff
 from scapy.layers.dot11 import Dot11
 from subprocess import Popen, PIPE
 from random import randint
+from pyaudio import PyAudio, paInt16, paContinue
+from datetime import datetime
+import struct
 
 from kivy.app import App
 from kivy.config import Config
@@ -416,6 +419,65 @@ class SettingsAudio(Screen):
 
 class SettingsWireless(Screen):
     pass
+
+
+class SpeechController(Thread):
+    daemon = True
+    do_run = False
+    handle = None
+    recorded_frames = []
+    num_keywords = 0
+    keyword_names = None  # todo
+
+    def __init__(self):
+        Thread.__init__(self)
+        self.do_run = isdir("porcupine/")
+        if self.do_run:
+            # todo fill sensitivities parameter
+            self.handle = Porcupine(
+                self.get_porcupine_library(),
+                "porcupine/lib/common/porcupine_params.pv",
+                keyword_file_paths="porcupine/models/",
+            )
+
+    @staticmethod
+    def get_porcupine_library():
+        if Static.is_pi():
+            model = open("/proc/device-tree/model").read().lower()
+            if "zero" in model or "model a" in model or "model b" in model:
+                return "porcupine/lib/raspberry-pi/arm11/"
+            elif "pi 2" in model:
+                return "porcupine/lib/raspberry-pi/cortex-a7/"
+            elif "pi 3" in model:
+                return "porcupine/lib/raspberry-pi/cortex-a53/"
+        else:
+            return "porcupine/lib/linux/x86_64/"  # who still uses i386
+
+    def audio_callback(self, in_data, frame_count, time_info, status):
+        if frame_count >= self.handle.frame_length:
+            pcm = struct.unpack_from("h" * self.handle.frame_length, in_data)
+            result = self.handle.process(pcm)
+            if self.num_keywords == 1 and result:
+                print('[%s] detected keyword' % str(datetime.now()))
+                # add your own code execution here ... it will not block the recognition
+            elif self.num_keywords > 1 and result >= 0:
+                print('[%s] detected %s' % (str(datetime.now()), self.keyword_names[result]))
+                # or add it here if you use multiple keywords
+
+        return None, paContinue
+
+    def run(self):
+        pa = PyAudio()
+        astrm = pa.open(rate=self.handle.sample_rate, channels=1, format=paInt16, input=True,
+                        frames_per_buffer=self.handle.frame_length, input_device_index=None, stream_callback=self.audio_callback)
+        astrm.start_stream()
+        while self.do_run:
+            sleep(0.1)
+
+        astrm.stop_stream()
+        astrm.close()
+        pa.terminate()
+        self.handle.delete()
 
 
 class Overview(Screen):
