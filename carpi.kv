@@ -270,6 +270,35 @@
         orientation: "vertical"
         padding: [4, 4, 4, 4]
 
+        Label:
+            id: lbl_song_title
+            text: root.current_song
+            pos: (8, 420)
+
+        Button:
+            id: btn_change_to_last_song
+            text: "<<"
+            pos: (4, 128)
+            size: pt(64), pt(32)
+            on_press:
+                root.change_to_last_song()
+
+        Button:
+            id: btn_pause_song
+            text: "||"
+            pos: (120, 128)
+            size: pt(64), pt(32)
+            on_press:
+                root.pause_song()
+
+        Button:
+            id: btn_change_to_next_song
+            text: ">>"
+            pos: (232, 128)
+            size: pt(64), pt(32)
+            on_press:
+                root.change_to_next_song()
+
         Button:
             id: btn_back
             text: 'back'

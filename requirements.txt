@@ -6,3 +6,4 @@ soundfile
 netifaces
 gps
 kivy
+pydub

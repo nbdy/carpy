@@ -16,7 +16,10 @@ from kivy.config import Config
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.properties import StringProperty
-# from kivy.core.window import Window
+
+# todo map: https://github.com/kivy-garden/garden.mapview
+# todo geocoder for map
+# todo virtual keyboard: https://kivy.org/doc/stable/api-kivy.uix.vkeyboard.html
 
 environ["SDL_FBDEV"] = "/dev/fb0"
 
@@ -224,8 +227,10 @@ class AudioLibrary(object):
                 albums.append(fp)
         return albums
 
-    def __init__(self, path= "~/Music/"):
+    def __init__(self, path="~/Music/"):
         self.path = Static.append_slash(abspath(path))
+        self.albums = self.get_albums()
+        self.songs = self.get_all_songs()
         log.debug("initializing with audio directory '" + self.path + "'")
         log.debug("initialized")
 
@@ -245,14 +250,12 @@ class Player(Thread):
 
     queue = []
     current_song = None
-    cfg = None
 
     audio_lib = None
 
-    def __init__(self, cfg, audio_lib):
+    def __init__(self, audio_lib):
         Thread.__init__(self)
         self.audio_lib = audio_lib
-        self.cfg = cfg
 
     def play(self, fp):
         pass
@@ -272,24 +275,30 @@ class Player(Thread):
     def stop(self):
         pass
 
+    def run(self):
+        while self.do_run:
+            pass
+
 
 class FMTransmitter(Player):
     css = None
+    pi_fm_rds_path = "/opt/PiFmRds/src/pi_fm_rds"
 
-    def __init__(self, config, audio_lib):
-        Player.__init__(self, config, audio_lib)
-        if not isfile(self.cfg.pi_fm_rds_path):
-            raise Exception("/opt/PiFmRds/src/pi_fm_rds does not exist")
+    def __init__(self, audio_lib):
+        Player.__init__(self, audio_lib)
+        if Static.is_pi():
+            if not isfile(self.pi_fm_rds_path):
+                raise Exception("/opt/PiFmRds/src/pi_fm_rds does not exist")
 
     def play(self, fp):
         if not isfile(fp):
             return False
         if fp.endswith(".mp3"):
-            self.css = Popen(["sox", "-t", fp, "-t", "wav", "-", "|", "./" + self.cfg.pi_fm_rds_path,
+            self.css = Popen(["sox", "-t", fp, "-t", "wav", "-", "|", "./" + self.pi_fm_rds_path,
                               "-audio", "-"], stdout=PIPE)
             return True
         elif fp.endswith(".wav"):
-            self.css = Popen(["./" + self.cfg.pi_fm_rds_path, "-audio", fp], stdout=PIPE)
+            self.css = Popen(["./" + self.pi_fm_rds_path, "-audio", fp], stdout=PIPE)
             return True
         else:
             log.error("not sure what '" + fp[-4:-1] + "'kind of file extension is")
@@ -313,17 +322,47 @@ class AuxOut(Player):
     def stop(self):
         sd.stop()
 
+    def run(self):
+        s = sd.wait()
+        if s:
+            log.error(s)
+
+
+audio_library = AudioLibrary()
+audio = None
+
 
 class Audio(Screen):
     pass
 
 
 class AudioAux(Screen):
-    pass
+    audio = None
+
+    current_song = StringProperty()
+
+    def __init__(self):
+        Screen.__init__(self, name="audio_aux")
+        audio = AuxOut(audio_library)
+        self.audio = audio
+
+    def change_to_last_song(self):
+        log.debug("changing to last song")
+
+    def change_to_next_song(self):
+        log.debug("changing to next song")
+
+    def pause_song(self):
+        log.debug("pausing current song")
 
 
 class AudioFM(Screen):
-    pass
+    audio = None
+
+    def __init__(self):
+        Screen.__init__(self, name="audio_fm")
+        audio = FMTransmitter(audio_library)
+        self.audio = audio
 
 
 class Wireless(Screen):
@@ -426,8 +465,8 @@ if __name__ == '__main__':
     sm.add_widget(Overview())
     sm.add_widget(MainMenu(name="main_menu"))
     sm.add_widget(Audio(name="audio"))
-    sm.add_widget(AudioAux(name="audio_aux"))
-    sm.add_widget(AudioFM(name="audio_fm"))
+    sm.add_widget(AudioAux())
+    sm.add_widget(AudioFM())
     sm.add_widget(Wireless(name="wireless"))
     sm.add_widget(WirelessWiFi(name="wireless_wifi"))
     sm.add_widget(WirelessBluetooth(name="wireless_bluetooth"))
@@ -441,9 +480,6 @@ if __name__ == '__main__':
         Config.set("graphics", "borderless", 1)
         Config.set("graphics", "resizable", 0)
         Config.set("graphics", "show_cursor", 0)
-        # Config.set("graphics", "left", 0)
-        # Config.set("graphics", "top", 0)
-        # Config.set("graphics", "position", "custom")
         Config.set("graphics", "height", 480)
         Config.set("graphics", "width", 320)
         Config.write()
