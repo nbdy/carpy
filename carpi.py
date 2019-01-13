@@ -287,7 +287,7 @@ class Player(Thread):
 
 class FMTransmitter(Player):
     css = None
-    freq = 104.2
+    freq = 96
     enable_radio_text = True
     last_cmd = []
     pi_fm_rds_path = "/opt/PiFmRds/src/pi_fm_rds"
