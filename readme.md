@@ -16,11 +16,12 @@ a linux system w/ custom ui/case seemed like the best solution.<br>
 ### features:
 done:
 - ui
+- audio player
 - install script
 
 todo:
 - map / navigation
-- audio / radio broadcast 
+- radio broadcast 
 - wardriving
 - ...
 

@@ -220,7 +220,10 @@ class AudioLibrary(object):
 
     def __init__(self, path="~/Music/"):
         if path.startswith("~"):
-            self.path = expanduser(path)
+            if Static.is_pi() and Static.is_root():
+                self.path = "/home/pi" + path[1:]
+            else:
+                self.path = expanduser(path)
         else:
             self.path = Static.append_slash(abspath(path))
         self.songs = self.get_songs_in_dir(self.path)

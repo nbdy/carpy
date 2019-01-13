@@ -1,9 +1,6 @@
 cython
 loguru
 scapy
-sounddevice
-soundfile
 netifaces
 gps
 kivy
-pydub
