@@ -6,4 +6,5 @@ gps
 kivy
 netifaces
 PyAudio
+pocketsphinx
 SpeechRecognition
