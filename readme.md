@@ -18,11 +18,12 @@ done:
 - ui
 - audio player
 - install script
+- basic voice control
+- radio broadcast 
 
 todo:
-- voice control
+- full voice control
 - map / navigation
-- radio broadcast 
 - wardriving
 - ...
 
