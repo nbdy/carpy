@@ -581,12 +581,12 @@ class VoiceControl(Thread):
 
     def run(self):
         r = sr.Recognizer()
-        m = sr.Microphone()
+        m = sr.Microphone(0 if Static.is_pi() else None)
         with m as src:
             r.adjust_for_ambient_noise(src)
         sl = r.listen_in_background(m, self.callback)
         while self.do_run:
-            sleep(5)
+            sleep(0.2)
         sl(wait_for_stop=False)
 
 
