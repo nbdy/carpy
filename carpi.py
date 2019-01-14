@@ -9,9 +9,7 @@ from scapy.all import sniff
 from scapy.layers.dot11 import Dot11
 from subprocess import Popen, PIPE
 from random import randint
-from pyaudio import PyAudio, paInt16, paContinue
-from datetime import datetime
-import struct
+import speech_recognition as sr
 
 from kivy.app import App
 from kivy.config import Config
@@ -182,11 +180,14 @@ class WiFi(Thread):
             log.warning("no interface, disabling wifi")
             self.do_run = False
 
-    def _scapy_cb(self, pkt):
+    @staticmethod
+    def _scapy_cb(pkt):
         if pkt.haslayer(Dot11):
             pass
 
     def _scapy_stop_filter(self, pkt):
+        if not pkt:
+            log.debug("yes?")
         return not self.do_run
 
     def run(self):
@@ -217,6 +218,8 @@ class Static(object):
 class AudioLibrary(object):
     songs = []
     path = None
+    radio_path = None
+    mp3_path = None
 
     @staticmethod
     def get_songs_in_dir(directory):
@@ -227,13 +230,17 @@ class AudioLibrary(object):
                 songs.append(directory + fp)
         return songs
 
-    def convert_files(self):
+    def convert_files_for_radio(self):
         cvt_songs = []
+        if not isdir(self.path + "mp3"):
+            makedirs(self.path + "mp3")
         for song in self.songs:
             if song.endswith(".wav"):
                 cvt_songs.append(song)
             elif song.endswith(".mp3"):
                 Popen(["ffmpeg", "-i", song, song.replace(".mp3", ".wav")], stdout=PIPE)
+                Popen(["mv", song, self.path + "mp3"])
+
         return cvt_songs
 
     def __init__(self, path="~/Music/"):
@@ -243,9 +250,12 @@ class AudioLibrary(object):
             else:
                 self.path = expanduser(path)
         else:
-            self.path = Static.append_slash(abspath(path))
+            self.path = abspath(path)
+        self.path = Static.append_slash(self.path)
+        self.radio_path = self.path + "wav/"
+        self.mp3_path = self.path + "mp3/"  
         self.songs = self.get_songs_in_dir(self.path)
-        self.songs = self.convert_files()
+        self.songs = self.convert_files_for_radio()
         log.debug("initializing with audio directory '" + self.path + "'")
         log.debug("found " + str(len(self.songs)) + " songs in directory")
 
@@ -374,7 +384,6 @@ class AuxOut(Player):
 
 
 audio_library = AudioLibrary()
-audio = None
 
 
 class Audio(Screen):
@@ -402,15 +411,13 @@ class AudioPlayer(Screen):
 class AudioAux(AudioPlayer):
     def __init__(self):
         Screen.__init__(self, name="audio_aux")
-        audio = AuxOut(audio_library)
-        self.audio = audio
+        self.audio = AuxOut(audio_library)
 
 
 class AudioFM(AudioPlayer):
     def __init__(self):
         Screen.__init__(self, name="audio_fm")
-        audio = FMTransmitter(audio_library)
-        self.audio = audio
+        self.audio = FMTransmitter(audio_library)
 
 
 class Wireless(Screen):
@@ -522,63 +529,62 @@ class MainMenu(Screen):
         Screen.__init__(self, name="main_menu")
 
 
-class SpeechController(Thread):
-    daemon = True
+class VoiceControl(Thread):
     do_run = False
-    handle = None
-    recorded_frames = []
-    num_keywords = 0
-    keyword_names = None  # todo
+    daemon = True
 
-    def __init__(self):
+    screen_manager = None
+
+    def __init__(self, screen_manager):
         Thread.__init__(self)
-        self.do_run = isdir("porcupine/")
-        if self.do_run:
-            # todo fill sensitivities parameter
-            self.handle = Porcupine(
-                self.get_porcupine_library(),
-                "porcupine/lib/common/porcupine_params.pv",
-                keyword_file_paths="porcupine/models/",
-            )
+        self.screen_manager = screen_manager
+        self.do_run = True
 
-    @staticmethod
-    def get_porcupine_library():
-        if Static.is_pi():
-            model = open("/proc/device-tree/model").read().lower()
-            if "zero" in model or "model a" in model or "model b" in model:
-                return "porcupine/lib/raspberry-pi/arm11/"
-            elif "pi 2" in model:
-                return "porcupine/lib/raspberry-pi/cortex-a7/"
-            elif "pi 3" in model:
-                return "porcupine/lib/raspberry-pi/cortex-a53/"
-        else:
-            return "porcupine/lib/linux/x86_64/"  # who still uses i386
-
-    def audio_callback(self, in_data, frame_count, time_info, status):
-        if frame_count >= self.handle.frame_length:
-            pcm = struct.unpack_from("h" * self.handle.frame_length, in_data)
-            result = self.handle.process(pcm)
-            if self.num_keywords == 1 and result:
-                print('[%s] detected keyword' % str(datetime.now()))
-                # add your own code execution here ... it will not block the recognition
-            elif self.num_keywords > 1 and result >= 0:
-                print('[%s] detected %s' % (str(datetime.now()), self.keyword_names[result]))
-                # or add it here if you use multiple keywords
-
-        return None, paContinue
+    def callback(self, r, a):
+        try:
+            d = r.recognize_sphinx()
+            log.debug("voice control got: " + d)
+            chk = lambda data, keywords: any(c in data for c in keywords)
+            if chk(d, ["overview", "dashboard"]):
+                self.screen_manager.current = Overview.name
+            elif chk(d, ["main menu", "mean"]):
+                self.screen_manager.current = MainMenu.name
+            elif chk(d, ["audio menu", "aumu"]):
+                self.screen_manager.current = Audio.name
+            elif chk(d, ["aux", "aux audio", "auxiliary", "auxiliary audio"]):
+                self.screen_manager.current = AudioAux.name
+            elif chk(d, ["fm", "radio", "transmitter"]):
+                self.screen_manager.current = FMTransmitter.name
+            elif chk(d, ["wireless menu"]):
+                self.screen_manager.current = Wireless.name
+            elif chk(d, ["wifi", "woof woof"]):
+                self.screen_manager.current = WirelessWiFi.name
+            elif chk(d, ["bluetooth", "bee tea"]):
+                self.screen_manager.current = WirelessBluetooth.name
+            elif chk(d, ["settings menu"]):
+                self.screen_manager.current = Settings.name
+            elif chk(d, ["wireless settings", "wo sa"]):
+                self.screen_manager.current = SettingsWireless.name
+            elif chk(d, ["audio settings", "sau"]):
+                self.screen_manager.current = SettingsAudio.name
+        except sr.UnknownValueError:
+            print("idk what you said")
+            pass
+        except sr.RequestError as e:
+            print(e)
+            print("audio is None", a is None)
+            pass
 
     def run(self):
-        pa = PyAudio()
-        astrm = pa.open(rate=self.handle.sample_rate, channels=1, format=paInt16, input=True,
-                        frames_per_buffer=self.handle.frame_length, input_device_index=None, stream_callback=self.audio_callback)
-        astrm.start_stream()
+        r = sr.Recognizer()
+        r.energy_threshold = 3800
+        m = sr.Microphone()
+        with m as src:
+            r.adjust_for_ambient_noise(src)
+        sl = r.listen_in_background(m, self.callback)
         while self.do_run:
-            sleep(0.1)
-
-        astrm.stop_stream()
-        astrm.close()
-        pa.terminate()
-        self.handle.delete()
+            sleep(5)
+        sl(wait_for_stop=False)
 
 
 if __name__ == '__main__':
@@ -619,6 +625,9 @@ if __name__ == '__main__':
     class CarPiApp(App):
         def build(self):
             return sm
+
+    vc = VoiceControl(sm)
+    vc.start()
 
     app = CarPiApp()
     app.run()

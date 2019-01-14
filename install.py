@@ -72,7 +72,6 @@ class Setup(object):
         system("git submodule init")
         system("git submodule update")
         system("cd pybt ; ./dependencies.sh ; pip3 install -r requirements.txt")
-        system("cd porcupine ; pip3 install -r requirements.txt")
 
     @staticmethod
     def help():

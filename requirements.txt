@@ -6,3 +6,4 @@ gps
 kivy
 netifaces
 PyAudio
+SpeechRecognition
