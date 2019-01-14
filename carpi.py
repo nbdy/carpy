@@ -255,7 +255,7 @@ class AudioLibrary(object):
         self.radio_path = self.path + "wav/"
         self.mp3_path = self.path + "mp3/"  
         self.songs = self.get_songs_in_dir(self.path)
-        self.songs = self.convert_files_for_radio()
+        # self.songs = self.convert_files_for_radio()
         log.debug("initializing with audio directory '" + self.path + "'")
         log.debug("found " + str(len(self.songs)) + " songs in directory")
 
@@ -544,7 +544,10 @@ class VoiceControl(Thread):
         try:
             d = r.recognize_sphinx()
             log.debug("voice control got: " + d)
-            chk = lambda data, keywords: any(c in data for c in keywords)
+
+            def chk(data, keywords):
+                any(c in data for c in keywords)
+
             if chk(d, ["overview", "dashboard"]):
                 self.screen_manager.current = Overview.name
             elif chk(d, ["main menu", "mean"]):
@@ -567,6 +570,7 @@ class VoiceControl(Thread):
                 self.screen_manager.current = SettingsWireless.name
             elif chk(d, ["audio settings", "sau"]):
                 self.screen_manager.current = SettingsAudio.name
+
         except sr.UnknownValueError:
             print("idk what you said")
             pass
