@@ -19,6 +19,7 @@ from kivy.core.audio import SoundLoader
 from kivy.properties import StringProperty
 
 environ["SDL_FBDEV"] = "/dev/fb0"
+environ['KIVY_AUDIO'] = 'sdl2'
 
 RUNNING_PATH = dirname(abspath(__file__)) + "/"
 
@@ -542,46 +543,44 @@ class VoiceControl(Thread):
 
     def callback(self, r, a):
         try:
-            d = r.recognize_sphinx()
+            d = r.recognize_sphinx(a)
             log.debug("voice control got: " + d)
 
             def chk(data, keywords):
-                any(c in data for c in keywords)
+                return any(c in data for c in keywords)
 
             if chk(d, ["overview", "dashboard"]):
-                self.screen_manager.current = Overview.name
+                self.screen_manager.current = "overview"
             elif chk(d, ["main menu", "mean"]):
-                self.screen_manager.current = MainMenu.name
-            elif chk(d, ["audio menu", "aumu"]):
-                self.screen_manager.current = Audio.name
+                self.screen_manager.current = "main_menu"
+            elif chk(d, ["audio menu", "aumu", "music", "player"]):
+                self.screen_manager.current = "audio"
             elif chk(d, ["aux", "aux audio", "auxiliary", "auxiliary audio"]):
-                self.screen_manager.current = AudioAux.name
+                self.screen_manager.current = "audio_aux"
             elif chk(d, ["fm", "radio", "transmitter"]):
-                self.screen_manager.current = FMTransmitter.name
+                self.screen_manager.current = "audio_fm"
             elif chk(d, ["wireless menu"]):
-                self.screen_manager.current = Wireless.name
+                self.screen_manager.current = "wireless"
             elif chk(d, ["wifi", "woof woof"]):
-                self.screen_manager.current = WirelessWiFi.name
+                self.screen_manager.current = "wireless_wifi"
             elif chk(d, ["bluetooth", "bee tea"]):
-                self.screen_manager.current = WirelessBluetooth.name
+                self.screen_manager.current = "wireless_bluetooth"
             elif chk(d, ["settings menu"]):
-                self.screen_manager.current = Settings.name
+                self.screen_manager.current = "settings"
             elif chk(d, ["wireless settings", "wo sa"]):
-                self.screen_manager.current = SettingsWireless.name
+                self.screen_manager.current = "settings_wireless"
             elif chk(d, ["audio settings", "sau"]):
-                self.screen_manager.current = SettingsAudio.name
+                self.screen_manager.current = "settings_audio"
 
         except sr.UnknownValueError:
             print("idk what you said")
             pass
         except sr.RequestError as e:
             print(e)
-            print("audio is None", a is None)
             pass
 
     def run(self):
         r = sr.Recognizer()
-        r.energy_threshold = 3800
         m = sr.Microphone()
         with m as src:
             r.adjust_for_ambient_noise(src)
