@@ -10,6 +10,7 @@ from scapy.layers.dot11 import Dot11
 from subprocess import Popen, PIPE
 from random import randint
 import speech_recognition as sr
+from json import load as load_json
 
 from kivy.app import App
 from kivy.config import Config
@@ -213,6 +214,13 @@ class Static(object):
     @staticmethod
     def is_pi():
         return isfile("/proc/device-tree/model")
+
+    @staticmethod
+    def get_screen_instance(screen_manager, screen_name):
+        for screen in screen_manager.screens:
+            if screen.name == screen_name:
+                return screen
+        return None
 
 
 # todo: support nested albums
@@ -534,12 +542,15 @@ class VoiceControl(Thread):
     do_run = False
     daemon = True
 
+    keywords = None
     screen_manager = None
 
-    def __init__(self, screen_manager):
+    def __init__(self, screen_manager, keyword_file_path="keywords.json"):
         Thread.__init__(self)
         self.screen_manager = screen_manager
         self.do_run = True
+        self.keywords = load_json(open(keyword_file_path))
+        log.debug("loaded '" + keyword_file_path + "'")
 
     def callback(self, r, a):
         try:
@@ -549,27 +560,37 @@ class VoiceControl(Thread):
             def chk(data, keywords):
                 return any(c in data for c in keywords)
 
-            if chk(d, ["overview", "dashboard"]):
+            if self.screen_manager.current in ["audio_aux", "audio_fm"]:
+                cs = Static.get_screen_instance(self.screen_manager, self.screen_manager.current)
+
+                if chk(d, self.keywords["audio_player_play"]):
+                    print("should play now")
+                elif chk(d, self.keywords["audio_player_stop"]):
+                    print("should stop now")
+                elif chk(d, self.keywords["audio_player_next"]):
+                    print("should play next song now")
+
+            if chk(d, self.keywords["overview"]):
                 self.screen_manager.current = "overview"
-            elif chk(d, ["main menu", "mean"]):
+            elif chk(d, self.keywords["main_menu"]):
                 self.screen_manager.current = "main_menu"
-            elif chk(d, ["audio menu", "aumu", "music", "player"]):
+            elif chk(d, self.keywords["audio"]):
                 self.screen_manager.current = "audio"
-            elif chk(d, ["aux", "aux audio", "auxiliary", "auxiliary audio"]):
+            elif chk(d, self.keywords["audio_aux"]):
                 self.screen_manager.current = "audio_aux"
-            elif chk(d, ["fm", "radio", "transmitter"]):
+            elif chk(d, self.keywords["audio_fm"]):
                 self.screen_manager.current = "audio_fm"
-            elif chk(d, ["wireless menu"]):
+            elif chk(d, self.keywords["wireless"]):
                 self.screen_manager.current = "wireless"
-            elif chk(d, ["wifi", "woof woof"]):
+            elif chk(d, self.keywords["wireless_wifi"]):
                 self.screen_manager.current = "wireless_wifi"
-            elif chk(d, ["bluetooth", "bee tea"]):
+            elif chk(d, self.keywords["wireless_bluetooth"]):
                 self.screen_manager.current = "wireless_bluetooth"
-            elif chk(d, ["settings menu"]):
+            elif chk(d, self.keywords["settings"]):
                 self.screen_manager.current = "settings"
-            elif chk(d, ["wireless settings", "wo sa"]):
+            elif chk(d, self.keywords["settings_wireless"]):
                 self.screen_manager.current = "settings_wireless"
-            elif chk(d, ["audio settings", "sau"]):
+            elif chk(d, self.keywords["settings_audio"]):
                 self.screen_manager.current = "settings_audio"
 
         except sr.UnknownValueError:

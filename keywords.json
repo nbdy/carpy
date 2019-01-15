@@ -1,0 +1,17 @@
+{
+  "overview": ["overview", "dashboard", "shit"],
+  "main_menu": ["main menu", "mean"],
+  "audio": ["audio menu", "aumu"],
+  "audio_aux": ["aux", "auxiliary", "fuck"],
+  "audio_fm": ["fm", "radio", "transmitter"],
+  "wireless": ["wireless"],
+  "wireless_wifi": ["wifi", "woof", "why"],
+  "wireless_bluetooth": ["bluetooth", "bee tea", "blue tea", "bee tee", "prove"],
+  "settings": ["settings", "visiting"],
+  "settings_wireless": ["wireless settings", "wi sa", "visa"],
+  "settings_audio": ["audio settings", "au sa", "sau", "ostrich"],
+
+  "audio_player_play": ["play", "they"],
+  "audio_player_stop": ["stop", "pause", "polls", "stove"],
+  "audio_player_next": ["next"]
+}
