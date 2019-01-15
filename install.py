@@ -77,7 +77,6 @@ class Setup(object):
     @staticmethod
     def install_submodules():
         system("git submodule init --update")
-        system("git submodule update")
         system("cd pybt ; ./dependencies.sh ; pip3 install -r requirements.txt")
 
     @staticmethod
@@ -107,7 +106,7 @@ class Setup(object):
                 should_be_root()
                 Setup.install_dependencies()
             elif a in ["-subs", "--install-submodules"]:
-                should_not_be_root()
+                should_be_root()
                 Setup.install_submodules()
             elif a in ["-dd", "--install-display-driver"]:
                 should_be_root()
