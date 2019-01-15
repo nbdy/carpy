@@ -68,4 +68,11 @@ Q: how do i adjust the ui to my needs?<br>
 A: check the 'templates/' folder. it includes the stuff that makes up the ui.<br>
 <br>
 Q: my mp3's sound super slowed when played over radio?<br>
-A: yah.. idk. convert them to wav's (ffmpeg -i in.mp3 out.wav )
+A: yah.. idk. convert them to wav's (ffmpeg -i in.mp3 out.wav )<br>
+<br>
+Q: wtf are those keywords you preset?<br>
+A: sry. lisping real hard<br>
+Q: idc but how do i fix the shitty speech recognition?<br>
+A: use 'keyword_generator.py'<br>
+Q: but how do i use that?<br>
+A: --help

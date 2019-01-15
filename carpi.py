@@ -564,7 +564,7 @@ class VoiceControl(Thread):
                 cs = Static.get_screen_instance(self.screen_manager, self.screen_manager.current)
 
                 if chk(d, self.keywords["audio_player_play"]):
-                    print("should play now")
+                    cs.ids["btn_play_pause"].on_press()
                 elif chk(d, self.keywords["audio_player_stop"]):
                     print("should stop now")
                 elif chk(d, self.keywords["audio_player_next"]):
