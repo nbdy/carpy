@@ -54,7 +54,7 @@ class Setup(object):
 
     @staticmethod
     def install_dependencies():
-        system("sudo apt install python3 python3-dev python3-pip gpsd gpsd-clients libjpeg-dev libtiff-dev sox"
+        system("sudo apt install python3 python3-dev python3-pip gpsd gpsd-clients libjpeg-dev libtiff-dev sox "
                "xserver-xorg-input-evdev libsndfile-dev tcpdump build-essential swig git libpulse-dev libasound2-dev "
                "libsox-fmt-mp3 ffmpeg -y")
         system("pip3 install -r requirements.txt")
@@ -76,7 +76,7 @@ class Setup(object):
 
     @staticmethod
     def install_submodules():
-        system("git submodule init")
+        system("git submodule init --update")
         system("git submodule update")
         system("cd pybt ; ./dependencies.sh ; pip3 install -r requirements.txt")
 
