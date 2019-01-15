@@ -58,6 +58,8 @@ class Setup(object):
                "xserver-xorg-input-evdev libsndfile-dev tcpdump build-essential swig git libpulse-dev libasound2-dev "
                "libsox-fmt-mp3 ffmpeg -y")
         system("sudo cp stl/final/99-calibration.conf /usr/share/X11/xorg.conf.d/")
+        system("pip3 install -r requirements.txt")
+        system("garden install mapview")
         with open("/boot/config.txt", "a") as o:
             log.debug("opened /boot/config.txt")
             if "display_rotate=1" not in o.read():

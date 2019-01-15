@@ -19,6 +19,7 @@ from kivy.lang import Builder
 from kivy.core.audio import SoundLoader
 from kivy.properties import StringProperty
 
+
 environ["SDL_FBDEV"] = "/dev/fb0"
 environ['KIVY_AUDIO'] = 'sdl2'
 
@@ -460,8 +461,16 @@ class SettingsWireless(Screen):
 
 
 class Map(Screen):
+    gps = None
+
     def __init__(self):
         Screen.__init__(self, name="map")
+        self.gps = GPS(self.cb_gps)
+
+    def cb_gps(self, data):
+        if data["status"] != "not found":
+            self.ids["map_view"].lat = data["latitude"]
+            self.ids["map_view"].lon = data["longitude"]
 
 
 class Overview(Screen):
@@ -560,15 +569,19 @@ class VoiceControl(Thread):
             def chk(data, keywords):
                 return any(c in data for c in keywords)
 
-            if self.screen_manager.current in ["audio_aux", "audio_fm"]:
+            if self.screen_manager.current in ["audio_aux", "audio_fm", "map"]:
                 cs = Static.get_screen_instance(self.screen_manager, self.screen_manager.current)
 
-                if chk(d, self.keywords["audio_player_play"]):
-                    cs.ids["btn_play_pause"].on_press()
-                elif chk(d, self.keywords["audio_player_stop"]):
-                    print("should stop now")
-                elif chk(d, self.keywords["audio_player_next"]):
-                    print("should play next song now")
+                if self.screen_manager.current in ["audio_aux", "audio_fm"]:
+                    if chk(d, self.keywords["audio_player_play"]):
+                        cs.audio.unpause()
+                    elif chk(d, self.keywords["audio_player_stop"]):
+                        cs.audio.pause()
+                    elif chk(d, self.keywords["audio_player_next"]):
+                        cs.audio.next()
+
+                if self.screen_manager.current == "map":
+                    print("could put some voice navigation here")
 
             if chk(d, self.keywords["overview"]):
                 self.screen_manager.current = "overview"

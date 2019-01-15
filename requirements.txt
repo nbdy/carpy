@@ -8,3 +8,4 @@ netifaces
 PyAudio
 pocketsphinx
 SpeechRecognition
+kivy-garden

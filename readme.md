@@ -10,7 +10,7 @@ a linux system w/ custom ui/case seemed like the best solution.<br>
 - 3,5" gpio display (waveshare/etc.)<br>
 - raspberry pi 3<br>
 - 12 male/female jumper cables<br>
-- hdmi ribbon cable (50cm) (both ends are L pieces)
+- hdmi ribbon cable (50cm) (one L and one I connector)
 
 
 ### features:
@@ -28,15 +28,8 @@ todo:
 - ...
 
 ### install (dependencies):
-#### required
 ```
-pip3 install -r requirements.txt
 sudo python3 install.py -id
-```
-#### optional
-##### porcupine (speech control)
-```
-python3 install.py -is
 ```
 
 ### install (autostart):
