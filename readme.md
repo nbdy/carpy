@@ -24,7 +24,7 @@ done:
 
 todo:
 - full voice control
-- navigation / follow position as soon as gps got position
+- navigation
 - wardriving
 - ...
 
