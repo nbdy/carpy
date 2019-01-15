@@ -16,6 +16,7 @@ a linux system w/ custom ui/case seemed like the best solution.<br>
 ### features:
 done:
 - ui
+- map
 - audio player
 - install script
 - basic voice control
@@ -23,7 +24,7 @@ done:
 
 todo:
 - full voice control
-- map / navigation
+- navigation / follow position as soon as gps got position
 - wardriving
 - ...
 

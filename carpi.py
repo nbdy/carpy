@@ -12,13 +12,16 @@ from random import randint
 import speech_recognition as sr
 from json import load as load_json
 
+from kivy import garden
 from kivy.app import App
 from kivy.config import Config
+from kivy.garden.mapview import MapView
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.core.audio import SoundLoader
 from kivy.properties import StringProperty
 
+garden.garden_system_dir = "libs/garden/"
 
 environ["SDL_FBDEV"] = "/dev/fb0"
 environ['KIVY_AUDIO'] = 'sdl2'
@@ -33,25 +36,6 @@ log.add(RUNNING_PATH + "log/output.log", enqueue=True, backtrace=True)
 Config.set("kivy", "log_enable", 1)
 Config.set("kivy", "log_level", "debug")
 Config.set("kivy", "log_dir", RUNNING_PATH + "log/")
-
-# todo
-# overview wifi
-# - is connected
-# -- signal strength
-# wireless
-# - wifi list / scan option
-# - bluetooth list / scan option
-# -- device view / options
-# settings
-# - overview
-# -- design
-# - wifi
-# - bluetooth
-# -- ctrl state
-# -- wardrive mode
-# todo map: https://github.com/kivy-garden/garden.mapview
-# todo geocoder for map
-# todo virtual keyboard: https://kivy.org/doc/stable/api-kivy.uix.vkeyboard.html
 
 
 class Bluetooth(object):
@@ -464,8 +448,8 @@ class Map(Screen):
     gps = None
 
     def __init__(self):
-        Screen.__init__(self, name="map")
         self.gps = GPS(self.cb_gps)
+        Screen.__init__(self, name="map")
 
     def cb_gps(self, data):
         if data["status"] != "not found":
@@ -581,7 +565,7 @@ class VoiceControl(Thread):
                         cs.audio.next()
 
                 if self.screen_manager.current == "map":
-                    print("could put some voice navigation here")
+                    pass  # todo
 
             if chk(d, self.keywords["overview"]):
                 self.screen_manager.current = "overview"

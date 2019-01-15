@@ -417,12 +417,17 @@
         orientation: "vertical"
         padding: [4, 4, 4, 4]
 
-        MapView:
-            id: map_view
-            lat: root.gps.latitude if root.gps.latitude is not None else 48.137154
-            lon: root.gps.longitude if root.gps.longitude is not None else 11.576124
-            zoom: 22
+        BoxLayout:
+            id: actual_map
+            orientation: "vertical"
+            pos: (4, 54)
+            size: pt(232), pt(316)
 
+            MapView:
+                id: map_view
+                lat: root.gps.current_position['latitude'] if root.gps.current_position is not None else 48.137154
+                lon:root.gps.current_position['latitude'] if root.gps.current_position is not None else 11.576124
+                zoom: 22
 
         Button:
             id: btn_back
