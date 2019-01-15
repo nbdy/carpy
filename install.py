@@ -66,6 +66,9 @@ class Setup(object):
                 o.write("\ndisplay_rotate=1\n")
                 log.debug("wrote display_rotate=1 into /boot/config.txt")
         system("cd /opt ; git clone https://github.com/ChristopheJacquet/PiFmRds ; cd PiFmRds/src ; make clean ; make")
+
+    @staticmethod
+    def install_display_driver():
         system("cd /tmp ; wget http://osoyoo.com/driver/LCD_show_35hdmi.tar.gz ; tar xf LCD_show_35hdmi.tar.gz ; "
                "rm LCD_show_35hdmi.tar.gz ; cd LCD_show_35hdmi/ ; sudo ./LCD35_480\*320")
 
@@ -81,8 +84,9 @@ class Setup(object):
         log.info("{arguments}:")
         log.info("\t-ia\t--install-autostart")
         log.info("\t-ua\t--uninstall-autostart")
-        log.info("\t-id\t--install-dependencies")
-        log.info("\t-is\t--install-submodules")
+        log.info("\t-deps\t--install-dependencies")
+        log.info("\t-subs\t--install-submodules")
+        log.info("\t-dd\t--install-display-driver")
         exit()
 
     @staticmethod
@@ -97,12 +101,15 @@ class Setup(object):
             elif a in ["-ua", "--uninstall-autostart"]:
                 should_not_be_root()
                 Setup.uninstall_autostart()
-            elif a in ["-id", "--install-dependencies"]:
+            elif a in ["-deps", "--install-dependencies"]:
                 should_be_root()
                 Setup.install_dependencies()
-            elif a in ["-is", "--install-submodules"]:
+            elif a in ["-subs", "--install-submodules"]:
                 should_not_be_root()
                 Setup.install_submodules()
+            elif a in ["-dd", "--install-display-driver"]:
+                should_be_root()
+                Setup.install_display_driver()
             else:
                 Setup.help()
             i += 1
