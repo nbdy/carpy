@@ -1,7 +1,7 @@
-from os import getcwd, geteuid
+from os import getcwd, geteuid, system
 from sys import argv
 from loguru import logger as log
-from os import system
+from os.path import isdir, isfile
 
 
 class Setup(object):
@@ -58,8 +58,10 @@ class Setup(object):
                "xserver-xorg-input-evdev libsndfile-dev tcpdump build-essential swig git libpulse-dev libasound2-dev "
                "libsox-fmt-mp3 ffmpeg -y")
         system("pip3 install -r requirements.txt")
-        system("garden install mapview")
-        system("cd /opt ; git clone https://github.com/ChristopheJacquet/PiFmRds ; cd PiFmRds/src ; make clean ; make")
+        if not isdir("/opt/PiFmRds"):
+            system("cd /opt ; git clone https://github.com/ChristopheJacquet/PiFmRds")
+        if not isfile("/opt/PiFmRds/src/pi_fm_rds"):
+            system("cd PiFmRds/src ; make clean ; make")
 
     @staticmethod
     def install_display_driver():
