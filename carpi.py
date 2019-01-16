@@ -75,29 +75,22 @@ class Network(Thread):
             for prefix in ['e', 'wl']:
                 if iface.startswith(prefix):
                     av_ifaces.append(iface)
+        log.debug(av_ifaces)
         return av_ifaces
 
     def check_has_ip(self):
         dct = {}
         for iface in self.get_available_interfaces():
-            dct[iface] = netifaces.ifaddresses(iface)[netifaces.AF_INET][0]["addr"]
+            try:
+                dct[iface] = netifaces.ifaddresses(iface)[netifaces.AF_INET][0]["addr"]
+            except KeyError:
+                pass  # when a network device is present but has no ip
         return dct
-
-    def changed(self, new):
-        if self.last_ip_dict is None:
-            return True
-        for key in new.keys():
-            if key not in self.last_ip_dict.keys():
-                return True
-        for key in self.last_ip_dict.keys():
-            if key not in new.keys():
-                return True
-        return False
 
     def run(self):
         while self.do_run:
             ip_dct = self.check_has_ip()
-            if self.changed(ip_dct):
+            if self.last_ip_dict != ip_dct:
                 self.last_ip_dict = ip_dct
                 self.callback(ip_dct)
             sleep(self.sleep_time)

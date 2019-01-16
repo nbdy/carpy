@@ -43,6 +43,9 @@ python3 install.py -ia
 python3 install.py -ua
 ```
 
+### known issues:
+- gattlib compilation fails with 'boost_thread not found'
+
 ### faq:
 Q: where can i find a case for this?<br>
 A: over [here](https://github.com/trig0n/cadpi)<br>
