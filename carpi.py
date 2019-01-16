@@ -538,7 +538,7 @@ class VoiceControl(Thread):
     keywords = None
     screen_manager = None
 
-    def __init__(self, screen_manager, keyword_file_path="keywords.json"):
+    def __init__(self, screen_manager, keyword_file_path=RUNNING_PATH+"keywords.json"):
         Thread.__init__(self)
         self.screen_manager = screen_manager
         self.do_run = True
