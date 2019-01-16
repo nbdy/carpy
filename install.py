@@ -1,6 +1,5 @@
 from os import getcwd, geteuid, system
 from sys import argv
-from loguru import logger as log
 from os.path import isdir, isfile
 
 
@@ -23,7 +22,7 @@ class Setup(object):
 
     @staticmethod
     def _install_autostart():
-        log.info("installing to autostart")
+        print("installing to autostart")
         with open(Setup.AUTOSTART_PATH, 'a') as o:
             # o.write("@lxterminal -e cd " + getcwd() + "/; git pull")
             o.write("@lxterminal -e /usr/bin/sudo /usr/bin/python3 " + getcwd() + "/" + Setup.SCRIPT)
@@ -32,13 +31,13 @@ class Setup(object):
     @staticmethod
     def install_autostart():
         if Setup.already_autostart_installed():
-            log.info("autostart already installed")
+            print("autostart already installed")
             return True
         Setup._install_autostart()
 
     @staticmethod
     def _uninstall_autostart():
-        log.info("uninstalling autostart")
+        print("uninstalling autostart")
         _o = Setup.read_autostart_file()
         with open(Setup.AUTOSTART_PATH, 'w') as o:
             for l in _o:
@@ -48,7 +47,7 @@ class Setup(object):
     @staticmethod
     def uninstall_autostart():
         if not Setup.already_autostart_installed():
-            log.info("autostart already not enabled")
+            print("autostart already not enabled")
             return True
         Setup._uninstall_autostart()
 
@@ -67,10 +66,10 @@ class Setup(object):
     def install_display_driver():
         system("cp display_configs/vertical.conf /usr/share/X11/xorg.conf.d/99_touchscreen.conf")
         with open("/boot/config.txt", "a") as o:
-            log.debug("opened /boot/config.txt")
+            print("opened /boot/config.txt")
             if "display_rotate=1" not in o.read():
                 o.write("\ndisplay_rotate=1\n")
-                log.debug("wrote display_rotate=1 into /boot/config.txt")
+                print("wrote display_rotate=1 into /boot/config.txt")
         system("cd /tmp ; wget http://osoyoo.com/driver/LCD_show_35hdmi.tar.gz ; tar xf LCD_show_35hdmi.tar.gz ; "
                "rm LCD_show_35hdmi.tar.gz ; cd LCD_show_35hdmi/ ; sudo ./LCD35_480\*320")
 
@@ -81,20 +80,20 @@ class Setup(object):
 
     @staticmethod
     def help():
-        log.info("usage: python3 carpi.py {arguments}")
-        log.info("{arguments}:")
-        log.info("\t-ia\t--install-autostart")
-        log.info("\t-ua\t--uninstall-autostart")
-        log.info("\t-deps\t--install-dependencies")
-        log.info("\t-subs\t--install-submodules")
-        log.info("\t-dd\t--install-display-driver")
-        log.info("\t-a\t--all")
+        print("usage: python3 carpi.py {arguments}")
+        print("{arguments}:")
+        print("\t-ia\t--install-autostart")
+        print("\t-ua\t--uninstall-autostart")
+        print("\t-deps\t--install-dependencies")
+        print("\t-subs\t--install-submodules")
+        print("\t-dd\t--install-display-driver")
+        print("\t-a\t--all")
         exit()
 
     @staticmethod
     def parse_arguments(arguments):
         i = 1
-        log.info("parsing args")
+        print("parsing args")
         while i < len(arguments):
             a = arguments[i]
             if a in ["-ia", "--install-autostart"]:
@@ -124,13 +123,13 @@ class Setup(object):
 
 def should_not_be_root():
     if geteuid() == 0:
-        log.error("should not modify", Setup.AUTOSTART_PATH, "with root permissions")
+        print("should not modify", Setup.AUTOSTART_PATH, "with root permissions")
         exit()
 
 
 def should_be_root():
     if geteuid() != 0:
-        log.error("need root for apt calls")
+        print("need root for apt calls")
         exit()
 
 
