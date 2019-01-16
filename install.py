@@ -65,9 +65,10 @@ class Setup(object):
     @staticmethod
     def install_display_driver():
         system("cp display_configs/vertical.conf /usr/share/X11/xorg.conf.d/99_touchscreen.conf")
-        with open("/boot/config.txt", "a") as o:
-            print("opened /boot/config.txt")
-            if "display_rotate=1" not in o.read():
+        o = open("/boot/config.txt").read()
+        if "display_rotate=1" not in o:
+            with open("/boot/config.txt", "a") as o:
+                print("opened /boot/config.txt")
                 o.write("\ndisplay_rotate=1\n")
                 print("wrote display_rotate=1 into /boot/config.txt")
         system("cd /tmp ; wget http://osoyoo.com/driver/LCD_show_35hdmi.tar.gz ; tar xf LCD_show_35hdmi.tar.gz ; "
