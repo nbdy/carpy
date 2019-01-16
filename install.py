@@ -65,6 +65,7 @@ class Setup(object):
 
     @staticmethod
     def install_display_driver():
+        system("cp display_configs/vertical.conf /usr/share/X11/xorg.conf.d/99_touchscreen.conf")
         with open("/boot/config.txt", "a") as o:
             log.debug("opened /boot/config.txt")
             if "display_rotate=1" not in o.read():
@@ -76,7 +77,6 @@ class Setup(object):
     @staticmethod
     def install_submodules():
         system("git submodule init --update")
-        system("cp cadpi/final/99-calibration.conf /usr/share/X11/xorg.conf.d/")
         system("cd pybt ; ./dependencies.sh ; pip3 install -r requirements.txt")
 
     @staticmethod

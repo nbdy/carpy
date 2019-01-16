@@ -1,7 +1,3 @@
 [submodule "pybt"]
 	path = pybt
 	url = git://github.com/trig0n/pybt.git
-
-[submodule "cadpi"]
-    path = cadpi
-    url = git://github.com/trig0n/cadpi.git
