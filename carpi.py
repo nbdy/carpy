@@ -515,7 +515,7 @@ class Overview(Screen):
             log.debug("ethernet is disconnected")
             self.eth_status = "disconnected"
             self.eth_ip = ""
-        if self.eth_status == "disconnected" and self.wifi_status == "disconnected":
+        if not wifi_supplied and not eth_supplied:
             self.network_status = "disconnected"
 
     def cb_gps(self, data):
