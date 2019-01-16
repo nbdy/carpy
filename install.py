@@ -55,7 +55,7 @@ class Setup(object):
     def install_dependencies():
         system("sudo apt install python3 python3-dev python3-pip gpsd gpsd-clients libjpeg-dev libtiff-dev sox "
                "xserver-xorg-input-evdev libsndfile-dev tcpdump build-essential swig git libpulse-dev libasound2-dev "
-               "libsox-fmt-mp3 ffmpeg -y")
+               "libportaudio-dev libsox-fmt-mp3 ffmpeg -y")
         system("pip3 install -r requirements.txt")
         if not isdir("/opt/PiFmRds"):
             system("cd /opt ; git clone https://github.com/ChristopheJacquet/PiFmRds")
