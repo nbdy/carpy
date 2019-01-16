@@ -83,10 +83,21 @@ class Network(Thread):
             dct[iface] = netifaces.ifaddresses(iface)[netifaces.AF_INET][0]["addr"]
         return dct
 
+    def changed(self, new):
+        if self.last_ip_dict is None:
+            return True
+        for key in new.keys():
+            if key not in self.last_ip_dict.keys():
+                return True
+        for key in self.last_ip_dict.keys():
+            if key not in new.keys():
+                return True
+        return False
+
     def run(self):
         while self.do_run:
             ip_dct = self.check_has_ip()
-            if self.last_ip_dict != ip_dct:
+            if self.changed(ip_dct):
                 self.last_ip_dict = ip_dct
                 self.callback(ip_dct)
             sleep(self.sleep_time)
@@ -489,7 +500,6 @@ class Overview(Screen):
 
     def cb_network(self, data):
         log.debug("network changed")
-        self.network_status = "connected"
         wifi_supplied = False
         eth_supplied = False
         for k in data.keys():
@@ -512,6 +522,8 @@ class Overview(Screen):
             log.debug("ethernet is disconnected")
             self.eth_status = "disconnected"
             self.eth_ip = ""
+        if self.eth_status == "disconnected" and self.wifi_status == "disconnected":
+            self.network_status = "disconnected"
 
     def cb_gps(self, data):
         self.gps_status = data["status"]
@@ -549,6 +561,8 @@ class VoiceControl(Thread):
         try:
             d = r.recognize_sphinx(a)
             log.debug("voice control got: " + d)
+            if d == "":
+                return
 
             def chk(data, keywords):
                 return any(c in data for c in keywords)
