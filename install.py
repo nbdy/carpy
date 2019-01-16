@@ -65,7 +65,6 @@ class Setup(object):
 
     @staticmethod
     def install_display_driver():
-        system("sudo cp stl/final/99-calibration.conf /usr/share/X11/xorg.conf.d/")
         with open("/boot/config.txt", "a") as o:
             log.debug("opened /boot/config.txt")
             if "display_rotate=1" not in o.read():
@@ -77,6 +76,7 @@ class Setup(object):
     @staticmethod
     def install_submodules():
         system("git submodule init --update")
+        system("cp cadpi/final/99-calibration.conf /usr/share/X11/xorg.conf.d/")
         system("cd pybt ; ./dependencies.sh ; pip3 install -r requirements.txt")
 
     @staticmethod
@@ -88,6 +88,7 @@ class Setup(object):
         log.info("\t-deps\t--install-dependencies")
         log.info("\t-subs\t--install-submodules")
         log.info("\t-dd\t--install-display-driver")
+        log.info("\t-a\t--all")
         exit()
 
     @staticmethod
@@ -110,6 +111,11 @@ class Setup(object):
                 Setup.install_submodules()
             elif a in ["-dd", "--install-display-driver"]:
                 should_be_root()
+                Setup.install_display_driver()
+            elif a in ["-a", "--all"]:
+                should_be_root()
+                Setup.install_dependencies()
+                Setup.install_submodules()
                 Setup.install_display_driver()
             else:
                 Setup.help()

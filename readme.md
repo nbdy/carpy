@@ -30,7 +30,7 @@ todo:
 
 ### install (dependencies):
 ```
-sudo python3 install.py -deps -subs -dd
+sudo python3 install.py --all
 ```
 
 ### install (autostart):
