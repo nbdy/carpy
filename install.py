@@ -116,7 +116,7 @@ class Setup(object):
     def get_follow_arg_or_none(args, index):
         try:
             return args[index + 1]
-        except KeyError:
+        except IndexError:
             return None
 
     @staticmethod
