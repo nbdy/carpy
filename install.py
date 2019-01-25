@@ -63,16 +63,35 @@ class Setup(object):
             system("cd /opt/PiFmRds/src ; make clean ; make")
 
     @staticmethod
-    def install_display_driver():
+    def install_display_driver_480x320_vertical_koyoo():
         system("cp display_configs/vertical.conf /usr/share/X11/xorg.conf.d/99_touchscreen.conf")
         o = open("/boot/config.txt").read()
-        if "display_rotate=1" not in o:
+        if "display_rotate=" not in o:
             with open("/boot/config.txt", "a") as o:
                 print("opened /boot/config.txt")
-                o.write("\ndisplay_rotate=1\n")
+                o.write("\ndisplay_rotate=1\n")  # todo fix
                 print("wrote display_rotate=1 into /boot/config.txt")
         system("cd /tmp ; wget http://osoyoo.com/driver/LCD_show_35hdmi.tar.gz ; tar xf LCD_show_35hdmi.tar.gz ; "
                "rm LCD_show_35hdmi.tar.gz ; cd LCD_show_35hdmi/ ; sudo ./LCD35_480\*320")
+
+    @staticmethod
+    def install_display_driver_800x600_vertical():
+        system("cp display_configs/vertical_800x600.conf /usr/share/X11/xorg.conf.d/99_touchscreen.conf")
+        o = open("/boot/config.txt").read()
+        if "display_rotate=" not in o:
+            with open("/boot/config.txt", "a") as o:
+                print("opened /boot/config.txt")
+                o.write("\ndisplay_rotate=3\n")  # todo fix
+                print("wrote display_rotate=1 into /boot/config.txt")
+
+    @staticmethod
+    def install_display_driver(res="800x600", rot="v"):
+        if res == "800x600" and rot in ["v", "vertical"]:
+            Setup.install_display_driver_800x600_vertical()
+        elif res == "480x320" and rot in ["v", "vertical"]:
+            Setup.install_display_driver_480x320_vertical_koyoo()
+        else:
+            print("idk dd")  # todo
 
     @staticmethod
     def install_submodules():
@@ -88,8 +107,17 @@ class Setup(object):
         print("\t-deps\t--install-dependencies")
         print("\t-subs\t--install-submodules")
         print("\t-dd\t--install-display-driver")
+        print("\t\t480x320")
+        print("\t\t800x600")
         print("\t-a\t--all")
         exit()
+
+    @staticmethod
+    def get_follow_arg_or_none(args, index):
+        try:
+            return args[index + 1]
+        except KeyError:
+            return None
 
     @staticmethod
     def parse_arguments(arguments):
@@ -97,6 +125,10 @@ class Setup(object):
         print("parsing args")
         while i < len(arguments):
             a = arguments[i]
+            t = Setup.get_follow_arg_or_none(arguments, i)
+            na = "800x600" if t is None else t
+            t = Setup.get_follow_arg_or_none(arguments, i + 1)
+            rot = "v" if t is None else t
             if a in ["-ia", "--install-autostart"]:
                 should_not_be_root()
                 Setup.install_autostart()
@@ -111,12 +143,12 @@ class Setup(object):
                 Setup.install_submodules()
             elif a in ["-dd", "--install-display-driver"]:
                 should_be_root()
-                Setup.install_display_driver()
+                Setup.install_display_driver(na, rot)
             elif a in ["-a", "--all"]:
                 should_be_root()
                 Setup.install_dependencies()
                 Setup.install_submodules()
-                Setup.install_display_driver()
+                Setup.install_display_driver(na, rot)
             else:
                 Setup.help()
             i += 1
