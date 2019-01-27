@@ -16,7 +16,7 @@ from kivy import garden
 from kivy.app import App
 from kivy.config import Config
 from kivy.garden.mapview import MapView
-from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
 from kivy.lang import Builder
 from kivy.core.audio import SoundLoader
 from kivy.properties import StringProperty
@@ -625,6 +625,7 @@ if __name__ == '__main__':
     Builder.load_file("carpi.kv")
 
     sm = ScreenManager()
+    sm.transition = NoTransition()
     sm.add_widget(Overview())
     sm.add_widget(MainMenu())
     sm.add_widget(Audio())

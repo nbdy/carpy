@@ -27,6 +27,9 @@ todo:
 - navigation
 - wardriving
 - ...
+- make use of https://kivy.org/doc/stable/api-kivy.storage.redisstore.html (wardriving)
+- and https://kivy.org/doc/stable/api-kivy.uix.progressbar.html
+- and https://kivy.org/doc/stable/api-kivy.uix.slider.html (music)
 
 ### install (dependencies):
 ```
