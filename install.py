@@ -25,7 +25,8 @@ class Setup(object):
         print("installing to autostart")
         with open(Setup.AUTOSTART_PATH, 'a') as o:
             # o.write("@lxterminal -e cd " + getcwd() + "/; git pull")
-            o.write("@lxterminal -e /usr/bin/sudo /usr/bin/python3 " + getcwd() + "/" + Setup.SCRIPT)
+            o.write("@lxterminal -e /usr/bin/sudo /usr/bin/python3 " + getcwd() + "/" + Setup.SCRIPT + " -c " +
+                    getcwd() + "config.json")
         return True
 
     @staticmethod
