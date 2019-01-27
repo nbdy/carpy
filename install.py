@@ -26,7 +26,7 @@ class Setup(object):
         with open(Setup.AUTOSTART_PATH, 'a') as o:
             # o.write("@lxterminal -e cd " + getcwd() + "/; git pull")
             o.write("@lxterminal -e /usr/bin/sudo /usr/bin/python3 " + getcwd() + "/" + Setup.SCRIPT + " -c " +
-                    getcwd() + "config.json")
+                    getcwd() + "/config.json")
         return True
 
     @staticmethod
