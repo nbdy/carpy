@@ -618,52 +618,10 @@ class VoiceControl(Thread):
         sl(wait_for_stop=False)
 
 
-class Configuration(object):
-    resolution = (800, 600)
-    speech_recognition = False
-
-    @staticmethod
-    def help():
-        log.info("usage: python3 carpi.py {arguments}")
-        log.info("\t-h\t--help")
-        log.info("\t-c\t--config")
-        log.info("\t-r\t--resolution")
-        log.info("\t-s\t--speech-recognition")
-        exit()
-
-    @staticmethod
-    def parse_config(cfg_file):
-        if isfile(cfg_file):
-            c = Configuration()
-            c.__dict__.update(load_json(open(cfg_file)))
-            return c
-        return None
-
-    @staticmethod
-    def parse_arguments():
-        from sys import argv
-        log.debug("parsing args")
-        config = Configuration()
-        i = 0
-        while i < len(argv):
-            a = argv[i]
-            if a in ["-c", "--config"]:
-                return Configuration.parse_config(argv[i + 1])
-            elif a in ["-r", "--resolution"]:
-                config.resolution = argv[i + 1].split("x")
-                config.resolution = (int(cfg.resolution[0]), int(cfg.resolution[1]))
-            elif a in ["-s", "--speech-recognition"]:
-                config.speech_recognition = True
-            elif a in ["-h", "--help"]:
-                Configuration.help()
-            i += 1
-        return config
-
-
 if __name__ == '__main__':
     log.debug("going to run")
 
-    cfg = Configuration.parse_arguments()
+    cfg = load_json(open(RUNNING_PATH + "config.json"))
     Builder.load_file("carpi.kv")
 
     sm = ScreenManager()
@@ -680,20 +638,20 @@ if __name__ == '__main__':
     sm.add_widget(SettingsAudio())
     sm.add_widget(SettingsWireless())
 
-    log.debug("setting resolution %ix%i" % (cfg.resolution[0], cfg.resolution[1]))
+    log.debug("setting resolution %ix%i" % (cfg["resolution"][0], cfg["resolution"][1]))
     if Static.is_pi():
         log.debug("is pi, setting fullscreen")
         Config.set("graphics", "fullscreen", 1)
         Config.set("graphics", "borderless", 1)
         Config.set("graphics", "resizable", 0)
         Config.set("graphics", "show_cursor", 0)
-        Config.set("graphics", "height", cfg.resolution[0])
-        Config.set("graphics", "width", cfg.resolution[1])
+        Config.set("graphics", "height", cfg["resolution"][0])
+        Config.set("graphics", "width", cfg["resolution"][1])
         Config.write()
     else:
         log.debug("is not pi")
-        Config.set("graphics", "height", cfg.resolution[0])
-        Config.set("graphics", "width", cfg.resolution[1])
+        Config.set("graphics", "height", cfg["resolution"][0])
+        Config.set("graphics", "width", cfg["resolution"][1])
         Config.set("graphics", "resizable", False)
         Config.write()
 
@@ -701,7 +659,7 @@ if __name__ == '__main__':
         def build(self):
             return sm
 
-    if cfg.speech_recognition:
+    if cfg["speech_recognition"]:
         vc = VoiceControl(sm)
         vc.start()
 
