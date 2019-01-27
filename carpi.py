@@ -680,6 +680,7 @@ if __name__ == '__main__':
     sm.add_widget(SettingsAudio())
     sm.add_widget(SettingsWireless())
 
+    log.debug("setting resolution %ix%i" % (cfg.resolution[0], cfg.resolution[1]))
     if Static.is_pi():
         log.debug("is pi, setting fullscreen")
         Config.set("graphics", "fullscreen", 1)
@@ -690,7 +691,7 @@ if __name__ == '__main__':
         Config.set("graphics", "width", cfg.resolution[1])
         Config.write()
     else:
-        log.debug("is not pi, setting 320x480 resolution")
+        log.debug("is not pi")
         Config.set("graphics", "height", cfg.resolution[0])
         Config.set("graphics", "width", cfg.resolution[1])
         Config.set("graphics", "resizable", False)
