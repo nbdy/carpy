@@ -1,0 +1,512 @@
+#:kivy 1.0
+
+<ScreenManagement>:
+    Overview:
+        id: overview
+    MainMenu:
+
+
+<Overview>:
+    name: "overview"
+
+    FloatLayout:
+        id: overview_layout
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Label:
+            id: lbl_overview
+            text: "overview:"
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.01, 0.94)}
+
+        Label:
+            id: lbl_network_status
+            text: "network status:"
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.06, 0.92)}
+
+        Label:
+            id: lbl_network_status_value
+            text: root.network_status
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.42, 0.92)}
+
+        Label:
+            id: lbl_wifi
+            text: "wifi:"
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.06, 0.90)}
+
+        Label:
+            id: lbl_wifi_status
+            text: root.wifi_status
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.42, 0.90)}
+
+        Label:
+            id: lbl_wifi_ip
+            text: "ip:"
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.1, 0.88)}
+
+        Label:
+            id: lbl_wifi_ip_value
+            text: root.wifi_ip
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.42, 0.88)}
+
+        Label:
+            id: lbl_wifi_essid
+            text: "essid:"
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.1, 0.86)}
+
+        Label:
+            id: lbl_essid_value
+            text: root.wifi_essid
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.42, 0.86)}
+
+        Label:
+            id: lbl_eth
+            text: "eth:"
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.06, 0.84)}
+
+        Label:
+            id: lbl_eth_status
+            text: root.eth_status
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.42, 0.84)}
+
+        Label:
+            id: lbl_eth_ip
+            text: "ip:"
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.1, 0.82)}
+
+        Label:
+            id: lbl_eth_ip_value
+            text: root.eth_ip
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.42, 0.82)}
+
+        Label:
+            id: lbl_gps_overview
+            text: "gps:"
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.01, 0.80)}
+
+        Label:
+            id: lbl_gps_status
+            text: "status:"
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.04, 0.78)}
+
+        Label:
+            id: lbl_gps_status_value
+            text: root.gps_status
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.42, 0.78)}
+
+        Label:
+            id: lbl_gps_longitude
+            text: "lng:"
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.04, 0.76)}
+
+        Label:
+            id: lbl_gps_longitude_value
+            text: root.gps_longitude
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.42, 0.76)}
+
+        Label:
+            id: lbl_gps_latitude
+            text: "lat:"
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.04, 0.74)}
+
+        Label:
+            id: lbl_gps_latitude_value
+            text: root.gps_latitude
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.42, 0.74)}
+
+        Label:
+            id: lbl_gps_altitude
+            text: "alt:"
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.04, 0.72)}
+
+        Label:
+            id: lbl_gps_altitude_value
+            text: root.gps_altitude
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.42, 0.72)}
+
+        Label:
+            id: lbl_gps_speed
+            text: "speed"
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.04, 0.70)}
+
+        Label:
+            id: lbl_gps_speed_value
+            text: root.gps_speed
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.42, 0.70)}
+
+        Label:
+            id: lbl_gps_precision
+            text: "prc:"
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.04, 0.68)}
+
+        Label:
+            id: lbl_gps_precision_value
+            text: root.gps_precision
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.42, 0.68)}
+
+        Label:
+            id: lbl_gps_satellites
+            text: "sat:"
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.04, 0.66)}
+
+        Label:
+            id: lbl_gps_satellites_value
+            text: root.gps_satellites_used
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.42, 0.66)}
+
+        Button:
+            id: btn_main_menu
+            text: 'main menu'
+            size_hint: 0.98, 0.2
+            pos_hint: {'pos': (0.01, 0.01)}
+            on_press:
+                root.manager.current = 'main_menu'
+
+
+<MainMenu>:
+    name: "main_menu"
+    FloatLayout:
+        id: main_menu
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_overview
+            text: 'overview'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.84)}
+            on_press:
+                root.manager.current = 'overview'
+
+        Button:
+            id: btn_audio
+            text: 'audio'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.68)}
+            on_press:
+                root.manager.current = 'audio'
+
+        Button:
+            id: btn_wireless
+            text: 'wireless'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.52)}
+            on_press:
+                root.manager.current = 'wireless'
+
+        Button:
+            id: btn_map
+            text: "map"
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.36)}
+            on_press:
+                root.manager.current = "map"
+
+        Button:
+            id: btn_settings
+            text: 'settings'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.01)}
+            on_press:
+                root.manager.current = 'settings'
+
+
+<Audio>:
+    name: "audio"
+    FloatLayout:
+        id: audio
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_aux
+            text: 'aux'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.84)}
+            on_press:
+                root.manager.current = 'audio_aux'
+
+        Button:
+            id: btn_fm
+            text: 'fm'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.68)}
+            on_press:
+                root.manager.current = 'audio_fm'
+
+        Button:
+            id: btn_back
+            text: 'back'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.01)}
+            on_press:
+                root.manager.current = 'main_menu'
+
+
+<AudioAux>:
+    name: "audio_aux"
+
+    FloatLayout:
+        id: audio_aux
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Label:
+            id: lbl_song_title
+            text: root.current_song
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.01, 0.01)}
+
+        Button:
+            id: btn_play_pause
+            text: ">"
+            size_hint: 0.2, 0.08
+            pos_hint: {'pos': (0.42, 0.24)}
+            on_press:
+                root.play_or_pause()
+
+        Button:
+            id: btn_change_to_next_song
+            text: ">>"
+            size_hint: 0.2, 0.08
+            pos_hint: {'pos': (0.74, 0.24)}
+            on_press:
+                root.change_to_next_song()
+
+        Button:
+            id: btn_back
+            text: 'back'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.01)}
+            on_press:
+                root.manager.current = 'audio'
+
+
+<AudioFM>:
+    name: "audio_fm"
+
+    FloatLayout:
+        id: audio_aux
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Label:
+            id: lbl_song_title
+            text: root.current_song
+            size_hint: 0.1, 0.1
+            pos_hint: {'pos': (0.01, 0.01)}
+
+        Button:
+            id: btn_play_pause
+            text: ">"
+            size_hint: 0.2, 0.08
+            pos_hint: {'pos': (0.42, 0.24)}
+            on_press:
+                root.play_or_pause()
+
+        Button:
+            id: btn_change_to_next_song
+            text: ">>"
+            size_hint: 0.2, 0.08
+            pos_hint: {'pos': (0.74, 0.24)}
+            on_press:
+                root.change_to_next_song()
+
+        Button:
+            id: btn_back
+            text: 'back'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.01)}
+            on_press:
+                root.manager.current = 'audio'
+
+
+<Wireless>:
+    name: "wireless"
+
+    FloatLayout:
+        id: wireless
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_wifi
+            text: 'wifi'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.84)}
+            on_press:
+                root.manager.current = 'wireless_wifi'
+
+        Button:
+            id: btn_bluetooth
+            text: 'bluetooth'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.68)}
+            on_press:
+                root.manager.current = 'wireless_bluetooth'
+
+        Button:
+            id: btn_back
+            text: 'back'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.01)}
+            on_press:
+                root.manager.current = 'main_menu'
+
+
+<WirelessWiFi>:
+    name: "wireless_wifi"
+
+    FloatLayout:
+        id: wireless_wifi
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_back
+            text: 'back'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.01)}
+            on_press:
+                root.manager.current = 'wireless'
+
+
+<WirelessBluetooth>:
+    name: "wireless_bluetooth"
+
+    FloatLayout:
+        id: wireless_bluetooth
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_back
+            text: 'back'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.01)}
+            on_press:
+                root.manager.current = 'wireless'
+
+
+<Map>:
+    name: "map"
+
+    FloatLayout:
+        id: map
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        BoxLayout:
+            id: actual_map
+            orientation: "vertical"
+            size_hint: 0.98, 0.82
+            pos_hint: {'pos': (0.01, 0.17)}
+
+            MapView:
+                id: map_view
+                lat: root.gps.current_position['latitude'] if root.gps.current_position is not None else 48.137154
+                lon:root.gps.current_position['latitude'] if root.gps.current_position is not None else 11.576124
+                zoom: 22
+
+        Button:
+            id: btn_back
+            text: "back"
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.01)}
+            on_press:
+                root.manager.current = "main_menu"
+
+
+<Settings>:
+    name: "settings"
+
+    FloatLayout:
+        id: settings
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_settings_audio
+            text: "audio"
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.84)}
+            on_press:
+                root.manager.current = 'settings_audio'
+
+        Button:
+            id: btn_settings_wireless
+            text: "wireless"
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.68)}
+            on_press:
+                root.manager.current = 'settings_wireless'
+
+        Button:
+            id: btn_back
+            text: 'back'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.01)}
+            on_press:
+                root.manager.current = 'main_menu'
+
+
+<SettingsAudio>:
+    name: "settings_audio"
+
+    FloatLayout:
+        id: settings_audio
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_back
+            text: 'back'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.01)}
+            on_press:
+                root.manager.current = 'settings'
+
+
+<SettingsWireless>:
+    name: "settings_wireless"
+
+    FloatLayout:
+        id: settings_wireless
+        orientation: "vertical"
+        padding: [4, 4, 4, 4]
+
+        Button:
+            id: btn_back
+            text: 'back'
+            size_hint: 0.98, 0.15
+            pos_hint: {'pos': (0.01, 0.01)}
+            on_press:
+                root.manager.current = 'settings'

@@ -66,7 +66,7 @@ class Setup(object):
 
     @staticmethod
     def install_display_driver_480x320_vertical_koyoo():
-        system("cp display_configs/vertical.conf /usr/share/X11/xorg.conf.d/99_touchscreen.conf")
+        system("cp display_configs/c90.conf /usr/share/X11/xorg.conf.d/99_touchscreen.conf")
         o = open("/boot/config.txt").read()
         if "display_rotate=" not in o:
             with open("/boot/config.txt", "a") as o:
@@ -78,7 +78,7 @@ class Setup(object):
 
     @staticmethod
     def install_display_driver_800x600_vertical():
-        system("cp display_configs/vertical_800x600.conf /usr/share/X11/xorg.conf.d/99_touchscreen.conf")
+        system("cp display_configs/cc90.conf /usr/share/X11/xorg.conf.d/99_touchscreen.conf")
         o = open("/boot/config.txt").read()
         if "display_rotate=" not in o:
             with open("/boot/config.txt", "a") as o:
