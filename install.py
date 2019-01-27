@@ -43,7 +43,7 @@ class Setup(object):
         with open(Setup.AUTOSTART_PATH, 'w') as o:
             for l in _o:
                 if Setup.SCRIPT not in l:
-                    o.write(l + "\n")
+                    o.write(l)
 
     @staticmethod
     def uninstall_autostart():
