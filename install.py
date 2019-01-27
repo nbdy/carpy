@@ -82,7 +82,7 @@ class Setup(object):
             with open("/boot/config.txt", "a") as o:
                 print("opened /boot/config.txt")
                 o.write("\ndisplay_rotate=3\n")  # todo fix
-                print("wrote display_rotate=1 into /boot/config.txt")
+                print("wrote display_rotate=3 into /boot/config.txt")
 
     @staticmethod
     def install_display_driver(res="800x600", rot="v"):
