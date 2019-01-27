@@ -25,6 +25,7 @@ garden.garden_system_dir = "libs/garden/"
 
 environ["SDL_FBDEV"] = "/dev/fb0"
 environ['KIVY_AUDIO'] = 'sdl2'
+environ['KIVY_WINDOW'] = 'egl_rpi'
 
 RUNNING_PATH = dirname(abspath(__file__)) + "/"
 
