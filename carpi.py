@@ -13,11 +13,10 @@ import speech_recognition as sr
 from json import load as load_json
 
 from kivy import garden
-from kivy.app import App
+from kivy.app import App, Builder
 from kivy.config import Config
 from kivy.garden.mapview import MapView
 from kivy.uix.screenmanager import ScreenManager, Screen, NoTransition
-from kivy.lang import Builder
 from kivy.core.audio import SoundLoader
 from kivy.properties import StringProperty
 
@@ -623,7 +622,8 @@ if __name__ == '__main__':
     log.debug("going to run")
 
     cfg = load_json(open(RUNNING_PATH + "config.json"))
-    Builder.load_file("carpi.kv")
+
+    Builder.load_file("_carpi.kv")
 
     sm = ScreenManager()
     sm.transition = NoTransition()
@@ -665,5 +665,4 @@ if __name__ == '__main__':
         vc = VoiceControl(sm)
         vc.start()
 
-    app = CarPiApp()
-    app.run()
+    CarPiApp().run()
