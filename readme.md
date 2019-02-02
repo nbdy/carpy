@@ -1,4 +1,4 @@
-## carpi (obsolete use [c-arpi](https://github.com/trig0n/c-arpi)) 
+## carpi (obsolete, use [c-arpi](https://github.com/trig0n/c-arpi)) 
 
 ### why?
 my ford fiesta ja8 has an empty slot, which i broke the cover of.<br>
