@@ -4,8 +4,11 @@ import raylibpy
 
 
 # todo generate the ui for each module
-# modules may have an annotation for functions which represent a button icon
-# eg.:
+# holds list of available modules
+# module functions can have annotations:
+# @button(x, y, text, callback, #{IconID}#=None)
+# @label(x, y, text)
+# @image(x, y, path)
 class UI(Base):
     category = ModuleCategory.SYSTEM
     do_start = True
