@@ -1,4 +1,4 @@
-## carpi (obsolete, use [carpi](https://github.com/smthnspcl/carpi)) 
+## carpi (obsolete, use [carpi](https://github.com/nbdy/carpi)) 
 
 ### why?
 my ford fiesta mk6 has an empty slot, which i broke the cover of.<br>
@@ -34,7 +34,7 @@ todo:
 
 ### faq:
 Q: where can i find a case for this?<br>
-A: over [here](https://github.com/trig0n/cadpi)<br>
+A: over [here](https://github.com/nbdy/cadpi)<br>
 <br>
 Q: the input axis are correct, but the screen is still horizontal?<br>
 A: add "display_rotate=1" to /boot/config.txt<br>
