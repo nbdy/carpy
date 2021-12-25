@@ -1,3 +1,10 @@
+modulepy
+timerpp
+
+kivy
+kivymd
 loguru
-jsonpickle
-pyrunnable
+
+gps
+
+wifi
