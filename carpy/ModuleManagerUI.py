@@ -8,7 +8,7 @@ from carpy import log
 
 
 class ModuleManagerUI(MDRelativeLayout):
-    cache: list = []
+    index_cache: list = []
 
     btn_switch_state = None
     btn_reload_modules = None
@@ -60,18 +60,26 @@ class ModuleManagerUI(MDRelativeLayout):
     def get_icon(name: str):
         return name, [255, 255, 255, 1], ""
 
+    def add_module(self, module):
+        log.debug(module)
+        self.table.row_data.append((
+            module.do_run, module.information.name, str(module.information.version), len(module.dependencies),
+            self.get_icon(("check" if module.has_widget else "close")),
+            self.get_icon(("check" if module.is_system else "close"))
+        ))
+
+    def update_module(self, module):
+        log.debug(module)
+        self.table.row_data[self.index_cache.index(module.information.name)] = (
+            module.do_run, module.information.name, str(module.information.version), len(module.dependencies),
+            self.get_icon(("check" if module.has_widget else "close")),
+            self.get_icon(("check" if module.is_system else "close"))
+        )
+
     def update_modules(self, modules: dict):
         for k, v in modules.items():
-            if k not in self.cache:
-                self.cache.append(k)
-                self.table.row_data.append((
-                    v.do_run.is_set(), v.information.name, str(v.information.version), len(v.dependencies),
-                    self.get_icon(("check" if v.has_widget else "close")),
-                    self.get_icon(("check" if v.is_system else "close"))
-                ))
+            if k not in self.index_cache:
+                self.index_cache.append(k)
+                self.add_module(v)
             else:
-                self.table.row_data[self.cache.index(k)] = (
-                    v.do_run.is_set(), v.information.name, str(v.information.version), len(v.dependencies),
-                    self.get_icon(("check" if v.has_widget else "close")),
-                    self.get_icon(("check" if v.is_system else "close"))
-                )
+                self.update_module(v)

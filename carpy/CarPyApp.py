@@ -50,24 +50,25 @@ class CarPyApp(MDApp):
     module_manager: ModuleManager = None
     module_manager_ui: ModuleManagerUI = None
 
-    def get_widget_by_name(self, name: str):
-        for key in self.module_manager.modules.keys():
-            log.debug(key)
-            if key == name and self.module_manager.modules[key].has_widget:
-                log.debug("Found widget: {}", self.module_manager.modules[key].widget)
-                return self.module_manager.modules[key].widget
-        return None
-
     def on_module_selected(self, btn):
         self.root.ids.nav_drawer.set_state("close")
         log.debug("on_module_selected: {}", btn.text)
 
-        if btn.text == "ModuleManager":
-            widget = self.module_manager_ui
+        module = None
+        widget = None
+        module_manager_selected = btn.text == "ModuleManager"
+        if not module_manager_selected:
+            module = self.module_manager.get_module(btn.text)
+            if module is not None and module.has_widget:
+                widget = module.widget
         else:
-            widget = self.get_widget_by_name(btn.text)
+            widget = self.module_manager_ui
+            self.module_manager_ui.update_modules(self.module_manager.modules)
 
         log.debug("on_module_selected: {}", widget)
+
+        if module is not None:
+            module.on_selected()
 
         if widget is not None:
             log.info("Showing widget: {}", widget)
@@ -100,8 +101,8 @@ class CarPyApp(MDApp):
         self.module_manager.start()
 
     def on_stop(self):
+        self.module_manager.reload_hooks.clear()
         self.module_manager.stop()
-        self.module_manager.join()
 
     def build(self):
         return Builder.load_string(kv)

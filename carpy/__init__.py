@@ -1,4 +1,4 @@
-from modulepy import ProcessModule
+from modulepy import ModuleBase
 from multiprocessing import Queue
 from timerpp import Timer
 from loguru import logger as log
@@ -38,16 +38,17 @@ class CarPyWidget(MDRelativeLayout):
         self.timer.start(self.refresh_rate)
 
 
-class CarPyModule(ProcessModule):
+class CarPyModule(ModuleBase):
     data: dict = {}
     has_widget: bool = False
     is_system: bool = False
     widget: CarPyWidget = None
     widget_cls = CarPyWidget
     widget_queue: Queue = None
+    logger = None
 
     def __init__(self):
-        ProcessModule.__init__(self)
+        ModuleBase.__init__(self)
         self.widget_queue = Queue()
         if self.has_widget:
             self.widget = self.widget_cls(self.widget_queue)
@@ -59,9 +60,12 @@ class CarPyModule(ProcessModule):
             self.widget.join()
 
     def enqueue(self, data: dict):
-        ProcessModule.enqueue(self, data)
+        ModuleBase.enqueue(self, data)
         if self.has_widget:
             self.widget_queue.put(data)
+
+    def on_selected(self):
+        pass
 
 
 __all__ = ['CarPyModule', 'log', 'CarPyWidget']

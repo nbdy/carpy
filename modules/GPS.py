@@ -1,39 +1,53 @@
 from modulepy import ModuleInformation, ModuleVersion
 from carpy import CarPyModule, log, CarPyWidget
-from time import sleep
-from gps import gps, WATCH_ENABLE
-from kivy.properties import StringProperty
+from gps import gps, WATCH_ENABLE, WATCH_JSON
 from kivymd.uix.label import MDLabel
+from kivy.clock import mainthread
 
 
 class GPSInformation(CarPyWidget):
-    latitude = StringProperty()
-    longitude = StringProperty()
-    altitude = StringProperty()
-
     lbl_header: MDLabel = None
     lbl_latitude: MDLabel = None
     lbl_longitude: MDLabel = None
     lbl_altitude: MDLabel = None
+    latitude: MDLabel = None
+    longitude: MDLabel = None
+    altitude: MDLabel = None
 
+    @mainthread
     def update_data(self, data: dict):
-        self.latitude = str(data["lat"])
-        self.longitude = str(data["lon"])
-        self.altitude = str(data["alt"])
+        self.latitude.text = str(data["lat"])
+        self.longitude.text = str(data["lon"])
+        self.altitude.text = str(data["alt"])
 
     def build(self):
         self.lbl_header = MDLabel(text="GPS Information")
         self.add_widget(self.lbl_header)
-        self.lbl_header.pos_hint = {"center_x": 0.5, "center_y": 0.9}
+        self.lbl_header.pos_hint = {"center_x": 0.52, "center_y": 0.96}
 
-        self.lbl_latitude = MDLabel(text=self.latitude)
+        self.lbl_latitude = MDLabel(text="Latitude:")
         self.add_widget(self.lbl_latitude)
+        self.lbl_latitude.pos_hint = {"center_x": 0.54, "center_y": 0.90}
 
-        self.lbl_longitude = MDLabel(text=self.longitude)
+        self.latitude = MDLabel(text="0")
+        self.add_widget(self.latitude)
+        self.latitude.pos_hint = {"center_x": 0.65, "center_y": 0.90}
+
+        self.lbl_longitude = MDLabel(text="Longitude:")
         self.add_widget(self.lbl_longitude)
+        self.lbl_longitude.pos_hint = {"center_x": 0.54, "center_y": 0.84}
 
-        self.lbl_altitude = MDLabel(text=self.altitude)
+        self.longitude = MDLabel(text="0")
+        self.add_widget(self.longitude)
+        self.longitude.pos_hint = {"center_x": 0.65, "center_y": 0.84}
+
+        self.lbl_altitude = MDLabel(text="Altitude:")
         self.add_widget(self.lbl_altitude)
+        self.lbl_altitude.pos_hint = {"center_x": 0.54, "center_y": 0.78}
+
+        self.altitude = MDLabel(text="0")
+        self.add_widget(self.altitude)
+        self.altitude.pos_hint = {"center_x": 0.65, "center_y": 0.78}
 
 
 class GPS(CarPyModule):
@@ -44,7 +58,7 @@ class GPS(CarPyModule):
 
     def on_start(self):
         CarPyModule.on_start(self)
-        self.client = gps(mode=WATCH_ENABLE)
+        self.client = gps(mode=WATCH_ENABLE | WATCH_JSON)
         log.debug("GPS started")
 
     def on_stop(self):
@@ -65,4 +79,4 @@ class GPS(CarPyModule):
         }
         log.debug(self.data)
         self.enqueue(self.data)
-        sleep(1)
+        self.sleep(1)
